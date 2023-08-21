@@ -1,16 +1,27 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
+
+import App from './components/App';
 import reportWebVitals from './reportWebVitals';
 
+import { WagmiConfig } from 'wagmi'
+import { ConnectKitProvider } from "connectkit";
+
+import {wagmiConfig} from "./config";
+
+
 const root = ReactDOM.createRoot(
+  // @ts-ignore
   document.getElementById('root') as HTMLElement
 );
+
+
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  <WagmiConfig config={wagmiConfig}>
+    <ConnectKitProvider>
+      <App />
+    </ConnectKitProvider>
+  </WagmiConfig>
 );
 
 // If you want to start measuring performance in your app, pass a function
