@@ -33,31 +33,22 @@ import Header from './Header';
 import Footer from './Footer';
 import EventList from './EventList';
 import EventPage from './EventPage';
-import EventCreationPage from './EventCreationPage';
-import { WalletContext } from '../context/wallet';
+import EventCreationPage from './event-creation/Page';
 
 
 function App() {
-    const { address } = useAccount();
-    const [walletAddress, setWalletAddress] = useState(address);
-
-    useEffect(() => {
-        console.log('address changed', address)
-        setWalletAddress(address);
-    }, [address]);
-
     return (
         <Container fluid className="p-0 ">
             <Router>
                 <Header />
 
-                <WalletContext.Provider value={{ address }}>
-                    <Routes>
-                        <Route path='/' element={ <EventList/> } />
-                        <Route path='/event/:id' element={ <EventPage /> }/>
-                        <Route path='/event/create' element={ <EventCreationPage /> } />
-                    </Routes>
-                </WalletContext.Provider>
+                <div className='min-vh-100'>
+                <Routes>
+                    <Route path='/' element={ <EventList/> } />
+                    <Route path='/event/:id' element={ <EventPage /> }/>
+                    <Route path='/event/create' element={ <EventCreationPage /> } />
+                </Routes>
+                </div>
     
                 <Footer />
             </Router>

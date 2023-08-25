@@ -11,19 +11,19 @@ import InputGroup from "react-bootstrap/InputGroup";
 import { Badge, Stack } from "react-bootstrap";
 
 import Datetime from 'react-datetime';
+import moment, { Moment } from 'moment';
 
 import "react-datetime/css/react-datetime.css";
 
 export interface EventInputFields {
     title: string;
-    organizer: string;
     location: string;
     capacity: number;
     description: string;
     note: string;
     tags: string[];
-    start: Date;
-    end: Date;
+    start: Moment;
+    end: Moment;
 }
 
 
@@ -51,16 +51,20 @@ export const useLocalStorage = (
 }
 
 // @ts-ignore
-export function EventCreationForm({ setInputFields }) {
+export function EventCreationForm({
+    setInputFields,
+    ensName
+ } : {
+    setInputFields: (input: EventInputFields) => void,
+    ensName: string
+}) {
     const [title, setTitle] = useLocalStorage('title', '');
-    const [organizer, setOrganizer] = useLocalStorage('organizer', '');
     const [description, setDescription] = useLocalStorage('description', '');
     const [note, setNote] = useLocalStorage('note', '');
     const [location, setLocation] = useLocalStorage('location', '');
 
     const [capacity, setCapacity] = useLocalStorage(
-        'capacity', 
-        '0',
+        'capacity', '0',
         (e: any) => { return parseInt(e, 10) },
         (e: any) => { return e.toString(10) }
     );
@@ -73,8 +77,8 @@ export function EventCreationForm({ setInputFields }) {
         (e: any) => { return JSON.stringify(e) }
     );
 
-    const [eventStart, setEventStart] = useState(new Date());
-    const [eventEnd, setEventEnd] = useState(new Date());
+    const [eventStart, setEventStart] = useState<Moment>(moment());
+    const [eventEnd, setEventEnd] = useState<Moment>(moment().add(1, 'hour'));
 
     const tagsComponents = tags.map((value: string, i: number) => {
         return (
@@ -91,37 +95,45 @@ export function EventCreationForm({ setInputFields }) {
 
     const tag_can_be_added = tags.length < 10 && tag.length > 0 && tag.length <= 20  && !tags.includes(tag);
 
-    const submit = (e: any) => {
-        e.preventDefault();
-
-        const input: EventInputFields = {
+    const submit = (event: any) => {
+        setInputFields({
             title,
-            organizer,
             location,
             capacity: parseInt(capacity, 10),
             description,
             note,
             tags,
             start: eventStart,
-            end: eventEnd,
-        };
-
-        setInputFields(input);
+            end: eventEnd
+        });
     }
 
     return (
         <Form>
-            <Row>
+            <div style={{ textAlign: 'center' }}>
+                <h1 className="pt-3">Tell about your event</h1>
+            </div>
+
+            <Row className="mt-5">
                 <Col>
                     <Form.Group className="mb-3" controlId="title">
                         <Form.Label>Title</Form.Label>
-                        <Form.Control onChange={(e) => setTitle(e.target.value)} value={title} type="text" placeholder="Enter your event's title" />
+                        <Form.Control 
+                            onChange={(e) => setTitle(e.target.value)}
+                            value={title}
+                            type="text"
+                            placeholder="Enter your event's title"
+                            required
+                        />
+                        <Form.Control.Feedback type="invalid">
+                            Title can't be blank.
+                        </Form.Control.Feedback>
                     </Form.Group>
                 </Col>
                 <Col>
                     <Form.Group className="mb-3" controlId="organizer">
                         <Form.Label>Organizer</Form.Label>
-                        <Form.Control onChange={(e) => setOrganizer(e.target.value)} value={organizer} type="text" placeholder="What's your name?" />
+                        <Form.Control disabled value={ensName} type="text" />
                     </Form.Group>                                
                 </Col>
             </Row>
@@ -129,14 +141,27 @@ export function EventCreationForm({ setInputFields }) {
             <Row>
                 <Col>
                     <Form.Group className="mb-3" controlId="location">
-                        <Form.Label>Location</Form.Label>
-                        <Form.Control onChange={(e) => setLocation(e.target.value)} value={location}  type="text" placeholder="France, Paris" />
+                        <Form.Label>Location (optional)</Form.Label>
+                        <Form.Control
+                            onChange={(e) => setLocation(e.target.value)}
+                            value={location}
+                            type="text"
+                            placeholder="France, Paris"
+                        />
+                        <Form.Text className="text-muted">
+                        Leave empty if it's an offline event.
+                        </Form.Text>
                     </Form.Group>
                 </Col>
                 <Col>
                     <Form.Group className="mb-3" controlId="capacity">
                         <Form.Label>Maximum participants</Form.Label>
-                        <Form.Control onChange={(e) => setCapacity(e.target.value)} value={capacity} type="number" placeholder="50" />
+                        <Form.Control 
+                            onChange={(e) => setCapacity(e.target.value)}
+                            value={capacity}
+                            type="number"
+                            placeholder="50"
+                        />
                     </Form.Group>                                
                 </Col>
             </Row>
@@ -145,7 +170,14 @@ export function EventCreationForm({ setInputFields }) {
                 <Col>
                     <Form.Group className="mb-3" controlId="description">
                         <Form.Label>Public description</Form.Label>
-                        <Form.Control onChange={(e) => setDescription(e.target.value)} value={description} maxLength={1000} as="textarea" rows={4} />
+                        <Form.Control 
+                            onChange={(e) => setDescription(e.target.value)} 
+                            value={description}
+                            maxLength={1000}
+                            placeholder="Welcome everyone to the first Ethereum meetup in Paris!"
+                            as="textarea"
+                            rows={4}
+                        />
                     </Form.Group>
                 </Col>
             </Row>
@@ -153,8 +185,14 @@ export function EventCreationForm({ setInputFields }) {
             <Row>
                 <Col>
                     <Form.Group className="mb-3" controlId="note">
-                        <Form.Label>Private description</Form.Label>
-                        <Form.Control onChange={(e) => setNote(e.target.value)} value={note} as="textarea" rows={4} placeholder="Eg link to the private Telegram chat or exact location"/>
+                        <Form.Label>Private description (optional)</Form.Label>
+                        <Form.Control 
+                            onChange={(e) => setNote(e.target.value)}
+                            value={note}
+                            as="textarea"
+                            rows={4}
+                            placeholder="Eg link to the private Telegram chat or exact location"
+                        />
                         <Form.Text className="text-muted">
                         This text will be end-to-end encrypted, meaning that only attendants approved by you will be able to read it.
                         </Form.Text>
@@ -166,14 +204,18 @@ export function EventCreationForm({ setInputFields }) {
                 <Col>
                     <Form.Label>Event's start</Form.Label>
                     <Form.Group className="mb-3" controlId="registration_start">
-                        <Datetime value={eventStart} onChange={(d) => { }} />
+                        <Datetime value={eventStart} onChange={(d) => {
+                            setEventStart(d as Moment);
+                        }} />
                     </Form.Group>
                 </Col>
 
                 <Col>
                     <Form.Label>Event's end</Form.Label>
                     <Form.Group className="mb-3" controlId="registration_end">
-                        <Datetime value={eventEnd} onChange={(d) => {}} />
+                        <Datetime value={eventEnd} onChange={(d) => {
+                            setEventStart(d as Moment);
+                        }} />
                     </Form.Group>
                 </Col>
             </Row>
@@ -207,7 +249,7 @@ export function EventCreationForm({ setInputFields }) {
 
             <Row className="mt-5" style={{ textAlign: 'center' }}>
                 <Col>
-                    <Button variant="primary" type="submit" onClick={(e) => submit(e)}>
+                    <Button variant="primary" type="submit" onClick={submit}>
                         Continue
                     </Button>
                 </Col>

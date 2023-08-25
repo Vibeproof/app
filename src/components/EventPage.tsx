@@ -109,12 +109,12 @@ class EventPage extends React.Component<IEventPageProps, IEventPageState> {
 
                                 <hr></hr>
 
-                                <Card.Title>Required public data</Card.Title>
+                                {/* <Card.Title>Required public data</Card.Title>
                                 <Card.Subtitle className="mb-2 text-muted">
                                     Twitter, EVM address
                                 </Card.Subtitle>
 
-                                <hr></hr>
+                                <hr></hr> */}
 
                                 <Card.Title>Capacity</Card.Title>
                                 <Card.Subtitle className="mb-2 text-muted">

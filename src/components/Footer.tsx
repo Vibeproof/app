@@ -10,7 +10,7 @@ import Navbar from 'react-bootstrap/Navbar';
 class Footer extends React.Component {
     render() {
         return (
-            <Navbar expand="lg" className="bg-body-tertiary mt-10 footer fixed-bottom">
+            <Navbar expand="lg" className="bg-body-tertiary mt-auto footer-sticky">
                 <Container fluid className='justify-content-md-center'>
                     <Nav>
                         <Nav.Link href="#home">Made by Sergey Potekhin</Nav.Link>
