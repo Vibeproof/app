@@ -175,16 +175,14 @@ function EventCreationPage() {
 
                 <Col>
                     {
-                        !loading 
-                        && step === EventCreationSteps.CONNECT_WALLET 
+                        step === EventCreationSteps.CONNECT_WALLET 
                         && <EventCreationConnectWallet
                             notEns={false}
                         /> 
                     }
 
                     {
-                        !loading 
-                        && step === EventCreationSteps.FILL_DETAILS 
+                        step === EventCreationSteps.FILL_DETAILS 
                         // && ens !== null
                         && <EventCreationForm 
                             setInputFields={setInputFieldsCallback} 
@@ -194,8 +192,7 @@ function EventCreationPage() {
                     }
 
                     {
-                        !loading 
-                        && step === EventCreationSteps.ENCRYPT_DETAILS 
+                        step === EventCreationSteps.ENCRYPT_DETAILS 
                         && inputFields
                         && address 
                         && <EventNoteEncryption 
@@ -207,16 +204,14 @@ function EventCreationPage() {
                     }
 
                     {
-                        !loading 
-                        && step === EventCreationSteps.SET_REQUIREMENTS 
+                        step === EventCreationSteps.SET_REQUIREMENTS 
                         && <EventSismoRequirementsForm
                             setClaims={setClaimsCallback}
                         />
                     }
 
                     {
-                        !loading
-                        && address
+                        address
                         && noteEncrypted
                         && claims
                         && inputFields
@@ -230,8 +225,6 @@ function EventCreationPage() {
                             inputFields={inputFields}
                         />
                     }
-
-                    {/* { loading && <Loader /> } */}
                 </Col>
             </Row>
         </Container>
