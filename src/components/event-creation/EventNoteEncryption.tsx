@@ -4,9 +4,9 @@ import Button from 'react-bootstrap/Button';
 
 import { createWalletClient, custom } from 'viem'
 import { mainnet } from 'viem/chains'
-import * as sigUtil from "@metamask/eth-sig-util";
-import * as ethUtil from "ethereumjs-util";
 
+import nacl from 'tweetnacl';
+import naclUtil from 'tweetnacl-util';
 
 
 function EventNoteEncryption({ 
@@ -18,7 +18,7 @@ function EventNoteEncryption({
     eventId: string,
     note: string,
     address: string,
-    setNoteEncrypted: (note: string) => void,
+    setNoteEncrypted: (note: string, publicKey: string) => void,
 }) {
     const client = createWalletClient({
         chain: mainnet,
@@ -32,20 +32,57 @@ function EventNoteEncryption({
             method: 'eth_getEncryptionPublicKey',
             // @ts-ignore
             params: [address],
-        }).then(publicKey => {
-            console.log(publicKey);
-            console.log(note);
+        }).then(async (publicKey) => {
+            // Generate random note key
+            const noteKey = utils.crypto.AES.generateKey();
 
-            const result = sigUtil.encrypt({
-                // @ts-ignore
-                publicKey,
-                data: note,
-                // https://github.com/MetaMask/eth-sig-util/blob/v4.0.0/src/encryption.ts#L40
-                version: "x25519-xsalsa20-poly1305"
-              });
+            // Generate random event key pair
+            const eventKeyPair: nacl.BoxKeyPair = nacl.box.keyPair();
+
+            // Encrypt note with note key
+            const noteEncrypted = utils.crypto.AES.encrypt(note, noteKey);
+
+            const keystorePlainJSON = {
+                version: 0,
+                noteKey: naclUtil.encodeBase64(noteKey),
+                eventPrivateKey: naclUtil.encodeBase64(eventKeyPair.secretKey),
+            };
+
+            // const ephemeralKeyPair = nacl.box.keyPair();
+
+            // // @ts-ignore
+            // const pubKeyUInt8Array = naclUtil.decodeBase64(publicKey);
+            // const msgParamsUInt8Array = naclUtil.decodeUTF8(note);
+            // const nonce = nacl.randomBytes(nacl.box.nonceLength);
             
-            //   // https://docs.metamask.io/guide/rpc-api.html#other-rpc-methods
-            //   return ethUtil.bufferToHex(Buffer.from(JSON.stringify(result), "utf8"));            
+            // const encryptedMessage = nacl.box(
+            //     msgParamsUInt8Array,
+            //     nonce,
+            //     pubKeyUInt8Array,
+            //     ephemeralKeyPair.secretKey,
+            // );
+
+            // const output = {
+            //     version: 'x25519-xsalsa20-poly1305',
+            //     nonce: naclUtil.encodeBase64(nonce),
+            //     ephemPublicKey: naclUtil.encodeBase64(ephemeralKeyPair.publicKey),
+            //     ciphertext: naclUtil.encodeBase64(encryptedMessage),
+            // };
+
+            // const noteEncrypted = Buffer.from(JSON.stringify(output), "utf8").toString('hex');
+
+            // // @ts-ignore
+            // setNoteEncrypted(noteEncrypted, publicKey);
+
+            // // // Test decrypt
+            // // const noteDecrypted = await client.request({
+            // //     // @ts-ignore
+            // //     method: 'eth_decrypt',
+            // //     // @ts-ignore
+            // //     params: [noteEncrypted, address]
+            // // });
+
+            // // console.log(noteDecrypted);
         }).catch(e => {
             console.log(e);
         });

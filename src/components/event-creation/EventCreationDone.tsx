@@ -71,49 +71,53 @@ function EventCreationDone({
         types: eventTypes
     });
 
-    useEffect(() => {
-        const client = createClient(connection);
-        console.log('uploading event');
+    const signEvent = async () => {
+        signTypedData();
+    };
 
-        const eventData: EventData = {
-            // @ts-ignore
-            id: eventId,
-            title: inputFields.title,
-            description: inputFields.description,
-            public_key: '0x123123',
+    // useEffect(() => {
+    //     const client = createClient(connection);
+    //     console.log('uploading event');
 
-            tags: inputFields.tags,
-            link: '',
+    //     const eventData: EventData = {
+    //         // @ts-ignore
+    //         id: eventId,
+    //         title: inputFields.title,
+    //         description: inputFields.description,
+    //         public_key: '0x123123',
 
-            note: noteEncrypted,
-            location: inputFields.location,
-            capacity: inputFields.capacity,
-            price: 0,
+    //         tags: inputFields.tags,
+    //         link: '',
 
-            registration_start: registration_start,
-            registration_end: registration_end,
-            start: inputFields.start.toISOString(),
-            end: inputFields.end.toISOString(),
+    //         note: noteEncrypted,
+    //         location: inputFields.location,
+    //         capacity: inputFields.capacity,
+    //         price: 0,
 
-            sismo: {
-                auths: [],
-                claims: claims
-            },
+    //         registration_start: registration_start,
+    //         registration_end: registration_end,
+    //         start: inputFields.start.toISOString(),
+    //         end: inputFields.end.toISOString(),
 
-            timestamp,
-            owner: address,
-            version: 0,
-            // @ts-ignore
-            signature: data
-        };
+    //         sismo: {
+    //             auths: [],
+    //             claims: claims
+    //         },
 
-        client.service('events').create({
-            ...eventData
-        }).then((r: any) => {
-            console.log(r);
-            setDone(true);
-        });
-    }, [data]);
+    //         timestamp,
+    //         owner: address,
+    //         version: 0,
+    //         // @ts-ignore
+    //         signature: data
+    //     };
+
+    //     client.service('events').create({
+    //         ...eventData
+    //     }).then((r: any) => {
+    //         console.log(r);
+    //         setDone(true);
+    //     });
+    // }, [data]);
 
     return (
         <Container>
@@ -128,7 +132,7 @@ function EventCreationDone({
                 <Col>
                     <h2>Event details</h2>
                     <p>done: { `${done}` }</p>
-                    <Button onClick={() => signTypedData()}>
+                    <Button onClick={() => signEvent()}>
                         Create event
                     </Button>
                 </Col>

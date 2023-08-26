@@ -70,6 +70,7 @@ function EventCreationPage() {
     const [step, setStep] = React.useState<EventCreationSteps>(EventCreationSteps.CONNECT_WALLET);
     const [inputFields, setInputFields] = React.useState<EventInputFields | null>(null);
     const [noteEncrypted, setNoteEncrypted] = React.useState<string | null>(null);
+    const [publicKey, setPublicKey] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [claims, setClaims] = React.useState<ClaimRequest[]>([]);
     const [proof, setProof] = React.useState<string | null>(null);
@@ -106,14 +107,15 @@ function EventCreationPage() {
         }
     }
 
-    const setNoteEncryptedCallback = (noteEncrypted: string) => {
+    const setNoteEncryptedCallback = (noteEncrypted: string, publicKey: string) => {
         setNoteEncrypted(noteEncrypted);
+        setPublicKey(publicKey);
+
         setStep(EventCreationSteps.SET_REQUIREMENTS);
     }
 
-    const setClaimsCallback = (claims: ClaimRequest[], proof: '') => {
+    const setClaimsCallback = (claims: ClaimRequest[]) => {
         setClaims(claims);
-        setProof(proof);
 
         setStep(EventCreationSteps.DONE);
     }
