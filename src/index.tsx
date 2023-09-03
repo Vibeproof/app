@@ -1,13 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-import App from './components/App';
+import App from './pages/App';
 import reportWebVitals from './reportWebVitals';
 
 import { WagmiConfig } from 'wagmi'
 import { ConnectKitProvider } from "connectkit";
 
 import {wagmiConfig} from "./config";
+import { MantineProvider } from '@mantine/core';
 
 
 const root = ReactDOM.createRoot(
@@ -19,7 +20,15 @@ const root = ReactDOM.createRoot(
 root.render(
   <WagmiConfig config={wagmiConfig}>
     <ConnectKitProvider>
-      <App />
+      <MantineProvider 
+        withGlobalStyles
+        withNormalizeCSS
+        theme={{
+          primaryColor: 'violet',
+        }}
+      >
+        <App />
+      </MantineProvider>
     </ConnectKitProvider>
   </WagmiConfig>
 );

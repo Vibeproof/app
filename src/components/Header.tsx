@@ -1,48 +1,107 @@
-import React from 'react';
-
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
-import NavLink from 'react-bootstrap/NavLink';
-
-
+import { createStyles, Header as HeaderMantine, Menu, Group, Center, Burger, Container, rem, Button } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { IconChevronDown } from '@tabler/icons-react';
+import { MantineLogo } from '@mantine/ds';
+import { ConnectKitButton } from 'connectkit';
 import { Link } from 'react-router-dom';
-import { ConnectKitButton } from "connectkit";
 
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+const HEADER_HEIGHT = rem(60);
 
 
-function Header() {
-  return (
-    <Navbar expand="lg" className="bg-body-tertiary justify-content-between" sticky='top'>
-      <Container>
-          <Link to={'/'} style={{ textDecoration: 'none' }}>
-            <Navbar.Brand>Snaphost</Navbar.Brand>
-          </Link>
+const useStyles = createStyles((theme) => ({
+  header: {
+    backgroundColor: theme.fn.variant({ variant: 'filled', color: theme.primaryColor }).background,
+    borderBottom: 0,
+  },
+  inner: {
+    height: rem(HEADER_HEIGHT),
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
 
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="me-auto">
-                  <Link to={'/my/tickets'} className='nav-link' style={{ textDecoration: 'none' }}>
-                    My events
-                  </Link>
+  links: {
+    [theme.fn.smallerThan('sm')]: {
+      display: 'none',
+    },
+  },
 
-                  <Link to={'/my/events'} className='nav-link' style={{ textDecoration: 'none' }}>
-                    My events
-                  </Link>
+  burger: {
+    [theme.fn.largerThan('sm')]: {
+      display: 'none',
+    },
+  },
 
-                  <Link to={'/event/create'} className='nav-link' style={{ textDecoration: 'none' }}>
-                    Create an event
-                  </Link>
-              </Nav>
-          </Navbar.Collapse>
+  link: {
+    display: 'block',
+    lineHeight: 1,
+    padding: `${rem(8)} ${rem(12)}`,
+    borderRadius: theme.radius.sm,
+    textDecoration: 'none',
+    color: theme.white,
+    fontSize: theme.fontSizes.sm,
+    fontWeight: 500,
 
-          <ConnectKitButton showAvatar={true} theme='soft'/>
-      </Container>
-    </Navbar>
-  );  
+    '&:hover': {
+      backgroundColor: theme.fn.lighten(
+        theme.fn.variant({ variant: 'filled', color: theme.primaryColor }).background!,
+        0.1
+      ),
+    },
+  },
+
+  linkLabel: {
+    marginRight: rem(5),
+  },
+}));
+
+interface HeaderSearchProps {
+  links: { 
+    link: string;
+    label: string;
+  }[];
 }
 
+export default function Header({ links }: HeaderSearchProps) {
+  const [opened, { toggle }] = useDisclosure(false);
+  const { classes } = useStyles();
 
-export default Header;
+  const items = links.map((link) => {
+    return (
+      <Link
+        key={link.label}
+        to={link.link}
+        className={classes.link}
+      >
+        {link.label}
+      </Link>
+    );
+  });
+
+  return (
+    <HeaderMantine height={HEADER_HEIGHT} className={classes.header} mb={20}>
+      <Container className={classes.inner}>
+        <Group>
+          <Burger
+            opened={opened}
+            onClick={toggle}
+            className={classes.burger}
+            size="sm"
+            color="#fff"
+          />
+          <MantineLogo size={28} inverted />
+        </Group>
+
+        <Group spacing={5} className={classes.links}>
+          {items}
+        </Group>
+
+        {/* <Button radius="xl" h={30}>
+          Get early access
+        </Button> */}
+        <ConnectKitButton showAvatar={true} theme='soft' />
+      </Container>
+    </HeaderMantine>
+  );
+}

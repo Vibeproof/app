@@ -1,25 +1,54 @@
-import React from 'react';
-import { Twitter } from 'react-bootstrap-icons';
+import { createStyles, Container, Group, ActionIcon, rem } from '@mantine/core';
+import { IconBrandTwitter, IconBrandYoutube, IconBrandInstagram, IconBrandTelegram, IconBrandDiscord } from '@tabler/icons-react';
+import { MantineLogo } from '@mantine/ds';
 
+const useStyles = createStyles((theme) => ({
+  footer: {
+    marginTop: rem(120),
+    borderTop: `${rem(1)} solid ${
+      theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[2]
+    }`,
+  },
 
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
+  inner: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: theme.spacing.xl,
+    paddingBottom: theme.spacing.xl,
 
+    [theme.fn.smallerThan('xs')]: {
+      flexDirection: 'column',
+    },
+  },
 
-class Footer extends React.Component {
-    render() {
-        return (
-            <Navbar expand="lg" className="bg-body-tertiary mt-auto footer-sticky">
-                <Container fluid className='justify-content-md-center'>
-                    <Nav>
-                        <Nav.Link href="#home">Made by Sergey Potekhin</Nav.Link>
-                    </Nav>
-                </Container>
-            </Navbar>
-        );
-    }
+  links: {
+    [theme.fn.smallerThan('xs')]: {
+      marginTop: theme.spacing.md,
+    },
+  },
+}));
+
+export default function Footer() {
+  const { classes } = useStyles();
+
+  return (
+    <div className={classes.footer}>
+      <Container className={classes.inner}>
+        <MantineLogo size={28} />
+
+        <Group spacing={0} className={classes.links} position="right" noWrap>
+          <ActionIcon size="lg">
+            <IconBrandTwitter size="1.05rem" stroke={1.5} />
+          </ActionIcon>
+          <ActionIcon size="lg">
+            <IconBrandTelegram size="1.05rem" stroke={1.5} />
+          </ActionIcon>
+          <ActionIcon size="lg">
+            <IconBrandDiscord size="1.05rem" stroke={1.5} />
+          </ActionIcon>
+        </Group>
+      </Container>
+    </div>
+  );
 }
-
-
-export default Footer;
