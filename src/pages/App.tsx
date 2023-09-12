@@ -5,11 +5,18 @@ import {
     BrowserRouter as Router,
     Routes,
     Route,
-  } from "react-router-dom";
+} from "react-router-dom";
+
 import Header from '../components/Header';
+import Footer from '../components/Footer';
+
 import EventsCreatePage from './events/Create';
 import EventsSearchPage from './events/Search';
-import Footer from '../components/Footer';
+import EventsDetailsPage from './events/Details';
+import ApplicationsCreatePage from './applications/Create';
+import ApplicationsMyPage from './applications/My';
+import EventsMyPage from './events/My';
+
 
 
 function App() {
@@ -27,11 +34,16 @@ function App() {
             <AppShell
                 header={header}
                 footer={footer}
-                padding={50}
+                padding={0}
             >
                 <Routes>
                     <Route path='/' element={ <EventsSearchPage/> } />
                     <Route path='/events/create' element={ <EventsCreatePage /> } />
+                    <Route path='/events/:id' element={ <EventsDetailsPage /> }/>
+                    <Route path='/events/my' element={ <EventsMyPage /> } />
+
+                    <Route path='/applications/create/:id' element={ <ApplicationsCreatePage /> }/>
+                    <Route path='/applications/my' element={ <ApplicationsMyPage /> } />
                 </Routes>
             </AppShell>
         </Router>

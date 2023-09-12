@@ -1,5 +1,5 @@
-import { Box, Button, Container, Grid, Group, MultiSelect, NumberInput, TextInput, Textarea } from "@mantine/core";
-import { IconHash } from "@tabler/icons-react";
+import { Box, Button, Chip, Container, Grid, Group, Input, MultiSelect, NumberInput, TextInput, Textarea } from "@mantine/core";
+import { IconHash, IconPhone, IconUser } from "@tabler/icons-react";
 import { DateTimePicker } from '@mantine/dates';
 import { useLocalStorage } from '@mantine/hooks';
 import { isInRange, useForm } from '@mantine/form';
@@ -10,7 +10,7 @@ import React, { useEffect } from "react";
 import { createWalletClient, custom } from 'viem'
 import { mainnet } from 'viem/chains'
 import { isValidUrl } from "../../utils/validators";
-import { EventData, cryptography } from '@snaphost/api';
+import { EventApplicationContacts, EventData, cryptography } from '@snaphost/api';
 
 import {
     encodeBase64,
@@ -35,7 +35,7 @@ interface Keystore {
     privateKey: string;
     encryptionKey: string;
     signatureKey: string;
-    version: 0;
+    version: number;
 }
 
 export type EventFormData = Omit<
@@ -65,6 +65,11 @@ export default function EventForm({
             tags: [
                 'Meetup'
             ],
+            contacts: [
+                EventApplicationContacts.NAME,
+                EventApplicationContacts.DISCORD,
+                EventApplicationContacts.TWITTER,
+            ],
         },
         validate: {
             title: (value) => {
@@ -81,7 +86,7 @@ export default function EventForm({
                 if (value.trim().length === 0) {
                     return null;
                 } else {
-                    return (value.trim().length < 50) ? null : 'Location too long';
+                    return (value.length < 50) ? null : 'Location too long';
                 }
             },
             capacity: isInRange({ min: 0 }, 'Capacity can\'t be zero'),
@@ -89,14 +94,14 @@ export default function EventForm({
                 if (value.trim().length === 0) {
                     return 'Description is required';
                 } else {
-                    return (value.trim().length < 1500) ? null : 'Description too long';
+                    return (value.length < 1500) ? null : 'Description too long';
                 }
             },
             note: (value) => {
                 if (value.trim().length === 0) {
                     return 'Note is required';
                 } else {
-                    return (value.trim().length < 1500) ? null : 'Note too long';
+                    return (value.length < 1500) ? null : 'Note too long';
                 }
             },
             application_template: (value) => {
@@ -120,12 +125,10 @@ export default function EventForm({
     });
 
     useEffect(() => {
-        const storedValue = window.localStorage.getItem('user-form');
+        const storedValue = window.localStorage.getItem('event-creation-form');
 
         if (storedValue !== null) {
             const values = JSON.parse(storedValue);
-
-            console.log(values.tags);
 
             form.setFieldValue('start', new Date(values.start));
             form.setFieldValue('end', new Date(values.end));
@@ -142,7 +145,7 @@ export default function EventForm({
     }, []);
     
     useEffect(() => {
-        window.localStorage.setItem('user-form', JSON.stringify(form.values));
+        window.localStorage.setItem('event-creation-form', JSON.stringify(form.values));
     }, [form.values]);
 
     const submit = async (values: any) => {
@@ -184,11 +187,14 @@ export default function EventForm({
 
         const registration_start = moment();
         const registration_end = moment(values.start).subtract(1, 'minute');
+
+        console.log(values.capacity);
     
         setEventFormData({
             id: crypto.randomUUID() as string,
             title: values.title,
             link: values.link,
+            contacts: values.contacts,
             location: values.location,
             capacity: values.capacity,
             description: values.description,
@@ -269,6 +275,34 @@ export default function EventForm({
                     </Grid.Col>
 
                     <Grid.Col span={12}>
+                        {/* <Input.Label>Applicant's details</Input.Label>
+                        <Input.Description>Applicants are required to fill this information.</Input.Description> */}
+
+
+                        <Input.Wrapper 
+                            id="contacts" 
+                            label="Applicant's details"
+                            description="Applicants are required to provide this information"
+                        >
+                            <Chip.Group multiple value={form.values.contacts} onChange={(e) => {
+                                console.log(e);
+                                form.setFieldValue('contacts', e as EventApplicationContacts[])
+                            }}>
+                                <Group mt={'md'}>
+                                    <Chip value={EventApplicationContacts.NAME}>Name</Chip>
+                                    <Chip value={EventApplicationContacts.PHONE}>Phone</Chip>
+                                    <Chip value={EventApplicationContacts.EMAIL}>Email</Chip>
+                                    <Chip value={EventApplicationContacts.DISCORD}>Discord</Chip>
+                                    <Chip value={EventApplicationContacts.FACEBOOK}>Facebook</Chip>
+                                    <Chip value={EventApplicationContacts.INSTAGRAM}>Instagram</Chip>
+                                    <Chip value={EventApplicationContacts.TWITTER}>Twitter</Chip>
+                                    <Chip value={EventApplicationContacts.TELEGRAM}>Telegram</Chip>
+                                </Group>
+                            </Chip.Group>
+                        </Input.Wrapper>
+                    </Grid.Col>
+
+                    <Grid.Col span={12}>
                         <Textarea
                             minRows={5}
                             label="Application template"
@@ -312,8 +346,6 @@ export default function EventForm({
                             creatable
                             getCreateLabel={(query) => `+ ${query}`}
                             data={defaultTags}
-                            // @ts-ignore
-                            // defaultValue={form.values.tags}
                             value={form.values.tags}
                             maxSelectedValues={10}
                             onChange={(value) => {
@@ -324,6 +356,7 @@ export default function EventForm({
                                 );
                             }}
                             onCreate={(value) => {
+                                console.log('create', value, form.values.tags);
                                 form.setFieldValue('tags', [...form.values.tags, value]);
                                 return value;
                             }}

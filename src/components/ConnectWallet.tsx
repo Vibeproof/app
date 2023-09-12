@@ -4,7 +4,7 @@ import React from "react";
 
 export default function ConnectWallet() {
     return (
-        <Center>
+        <Center h={500}>
             <Container>
                 <Title>Connect wallet with ENS address</Title>
                 <Text>To create an event you should connect wallet with ENS address</Text>

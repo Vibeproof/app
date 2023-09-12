@@ -9,6 +9,7 @@ import { ConnectKitProvider } from "connectkit";
 
 import {wagmiConfig} from "./config";
 import { MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 
 
 const root = ReactDOM.createRoot(
@@ -27,6 +28,7 @@ root.render(
           primaryColor: 'violet',
         }}
       >
+        <Notifications />
         <App />
       </MantineProvider>
     </ConnectKitProvider>

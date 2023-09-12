@@ -8,6 +8,8 @@ import { IconCircle, IconCircleCheck, IconFileDescription, IconFileText, IconShi
 
 import { EventFormData } from "../../components/events/EventForm";
 import EventSismoForm from "../../components/events/EventSismoForm";
+import { ClaimRequest } from "@sismo-core/sismo-connect-react";
+import EventSubmit from "../../components/events/EventSubmit";
 
 enum EventCreationSteps {
     CONNECT_WALLET,
@@ -21,6 +23,7 @@ export default function EventsCreatePage() {
     const { address, isConnected } = useAccount();
     const [step, setStep] = useState<EventCreationSteps>(EventCreationSteps.CONNECT_WALLET);
     const [eventFormData, setEventFormData] =useState<EventFormData | null>(null);
+    const [claims, setClaims] = useState<ClaimRequest[]>([]);
 
     useEffect(() => {
         if (isConnected === false) {
@@ -31,10 +34,14 @@ export default function EventsCreatePage() {
     }, [address]);
 
     const setEventFormDataCallback = (data: EventFormData) => {
-        console.log(data);
         setEventFormData(data);
         setStep(EventCreationSteps.SET_REQUIREMENTS);
     }
+
+    const setClaimsCallback = (claims: ClaimRequest[]) => {
+        setClaims(claims);
+        setStep(EventCreationSteps.DONE);
+    };
 
     const stepIcon = (step: EventCreationSteps) => {
         const size = 20;
@@ -54,7 +61,7 @@ export default function EventsCreatePage() {
     }
 
     return (
-        <Container size='lg'>
+        <Container size='lg' pt={50}>
             <Grid>
                 <Grid.Col span={3}>
                     <Stepper active={step} orientation="vertical" completedIcon={stepIcon(EventCreationSteps.CONNECT_WALLET)}>
@@ -97,7 +104,19 @@ export default function EventsCreatePage() {
 
                     {
                         step === EventCreationSteps.SET_REQUIREMENTS
-                        && <EventSismoForm />
+                        && <EventSismoForm 
+                            setClaims={setClaimsCallback}
+                        />
+                    }
+
+                    {
+                        step === EventCreationSteps.DONE
+                        && eventFormData !== null
+                        && <EventSubmit 
+                            eventFormData={eventFormData}
+                            claims={claims}
+                            address={address as string}
+                        />
                     }
                 </Grid.Col>
             </Grid>

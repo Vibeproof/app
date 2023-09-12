@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Button, Card, Container, Grid, Group, Input, Title, Text, Divider, CloseButton } from "@mantine/core";
+import { Button, Card, Container, Grid, Group, Input, Title, Text, Divider, CloseButton, Pagination, TextInput } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import axios from "axios";
 
@@ -11,24 +11,28 @@ import {
     SismoConnectButton,
     SismoConnectResponse
 } from "@sismo-core/sismo-connect-react";
-import SismoGroupCard from "../sismo/SismoGroupCard";
+import SismoGroupCard, { SismoGroupData } from "../sismo/SismoGroupCard";
 import { useDebouncedState } from "@mantine/hooks";
 
 
 const favoriteGroups = [
-    '0x0f800ff28a426924cbe66b67b9f837e2',
     '0xd630aa769278cacde879c5c0fe5d203c',
     '0xff7653240feecd7448150005a95ac86b',
     '0x42c768bb8ae79e4c5c05d3b51a4ec74a',
     '0x1cde61966decb8600dfd0749bd371f12',
+    '0x0f800ff28a426924cbe66b67b9f837e2',
     '0xab882512e97b60cb2295a1c190c47569',
 ];
 
 
-export default function EventSismoForm() {
-    const [sismoGroups, setSismoGroups] = useState<any[]>([]);
-    const [choosenGroups, setChoosenGroups] = useState<any[]>([]);
-    const [filter, setFilter] = useDebouncedState<string>('', 200);
+export default function EventSismoForm({
+    setClaims
+} : {
+    setClaims: (groups: ClaimRequest[]) => void
+}) {
+    const [sismoGroupsData, setSismoGroupsData] = useState<SismoGroupData[]>([]);
+    const [choosenGroups, setChoosenGroups] = useState<SismoGroupData[]>([]);
+    const [filter, setFilter] = useState<string>('');
 
     useEffect(() => {
         axios.get('https://hub.sismo.io/groups/latests').then((response) => {
@@ -46,7 +50,7 @@ export default function EventSismoForm() {
                 ...groups.filter((group: any) => !favoriteGroups.includes(group.id))
             ];
 
-            setSismoGroups(favoriteGroupsFirst);
+            setSismoGroupsData(favoriteGroupsFirst);
         });
     }, []);
 
@@ -61,7 +65,7 @@ export default function EventSismoForm() {
         setChoosenGroups(choosenGroups.filter((_, index) => index !== i));
     }
 
-    const sismoGroupsCards = sismoGroups
+    const sismoGroupsCards = sismoGroupsData
         .filter((group) => {
             return (
                 group.title.toLowerCase().includes(filter.toLowerCase())
@@ -83,33 +87,53 @@ export default function EventSismoForm() {
 
     const chosenGroupComponents = choosenGroups.map((group, i) => {
         return (
-            <Group key={i} position="apart">
-                <Text fz="lg">
-                    { group.title }
-                </Text>
-                <CloseButton aria-label="Close modal" onClick={() => removeGroupCallback(i)}/>
-            </Group>
+            <div key={i}>
+                <Group position="apart">
+                    <Text fz="lg" style={{ textTransform: 'capitalize' }}>
+                        { group.title }
+                    </Text>
+
+                    <CloseButton aria-label="Close modal" onClick={() => removeGroupCallback(i)}/>
+                </Group>
+                <Divider mt="xs" mb="xs"/>
+            </div>
         );
     });
+
+    const submit = () => {
+        const claims = choosenGroups.map((group) => {
+            return {
+                claimType: ClaimType.GTE,
+                groupId: group.id,
+                groupTimestamp: 'latest',
+                value: 1,
+                isOptional: false,
+                isSelectableByUser: false,
+                extraData: '',
+            } as Required<ClaimRequest>;
+        });
+
+        setClaims(claims);
+    }
 
     return (
         <Container>
             <Grid>
                 <Grid.Col span={12}>
-                    <Input
+                    <TextInput
                         icon={<IconSearch />}
                         placeholder="Search groups by name or description"
                         onChange={(event) => { setFilter(event.currentTarget.value); }}
                     />
                 </Grid.Col>
 
-                <Grid.Col span={8}>
+                <Grid.Col span={7}>
                     <Grid>
                         { sismoGroupsCards }
                     </Grid>
                 </Grid.Col>
 
-                <Grid.Col span={4}>
+                <Grid.Col span={5}>
                     <Card withBorder>
                         <Title order={4} mb='md'>
                             You've choosen { choosenGroups.length } groups
@@ -117,7 +141,7 @@ export default function EventSismoForm() {
 
                         { chosenGroupComponents }
 
-                        <Button fullWidth mt='md'>
+                        <Button fullWidth mt='md' onClick={() => submit()}>
                             Continue
                         </Button>
                     </Card>
