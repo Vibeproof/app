@@ -7,10 +7,10 @@ import { isInRange, useForm } from '@mantine/form';
 import moment, { Moment } from 'moment';
 
 import React, { useEffect } from "react";
-import { createWalletClient, custom } from 'viem'
+import { InternalRpcError, createWalletClient, custom } from 'viem'
 import { mainnet } from 'viem/chains'
 import { isValidUrl } from "../../utils/validators";
-import { EventApplicationContacts, EventData, cryptography } from '@snaphost/api';
+import { EventApplicationContacts, EventData, cryptography } from '@vibeproof/api';
 
 import {
     encodeBase64,
@@ -51,6 +51,8 @@ export default function EventForm({
     address: string,
     setEventFormData: (data: EventFormData) => void
 }) {
+    const [signing, setSigning] = React.useState<boolean>(false);
+
     const form = useForm({
         initialValues: {
             title: '',
@@ -75,6 +77,9 @@ export default function EventForm({
             title: (value) => {
                 return value.trim().length > 5 ? null : 'Title too short';
             },
+            tags: (value) => {
+                return value.length < 2 ? 'Select at least 2 tags' : null;
+            },
             link: (value) => {
                 if (value.trim().length === 0) {
                     return null;
@@ -94,7 +99,7 @@ export default function EventForm({
                 if (value.trim().length === 0) {
                     return 'Description is required';
                 } else {
-                    return (value.length < 1500) ? null : 'Description too long';
+                    return (value.length < 2500) ? null : 'Description too long';
                 }
             },
             note: (value) => {
@@ -155,8 +160,6 @@ export default function EventForm({
             transport: custom(window.ethereum)
         });
 
-        console.log(values);
-
         const wallet_public_key = await client.request({
             // @ts-ignore
             method: 'eth_getEncryptionPublicKey',
@@ -187,8 +190,6 @@ export default function EventForm({
 
         const registration_start = moment();
         const registration_end = moment(values.start).subtract(1, 'minute');
-
-        console.log(values.capacity);
     
         setEventFormData({
             id: crypto.randomUUID() as string,
@@ -215,7 +216,21 @@ export default function EventForm({
     }
 
     return (
-        <form onSubmit={form.onSubmit(async (values) => submit(values))}>
+        <form onSubmit={form.onSubmit(async (values) => {
+            setSigning(true);
+
+            submit(values)
+                .catch(e => {
+                    setSigning(false);
+
+                    if (e instanceof InternalRpcError) {
+                        const error = e as InternalRpcError;
+                    }
+                })
+                .then(() => {
+                    setSigning(false);
+                });
+        })}>
             <Container>
                 <Grid>
                     <Grid.Col span={6}>
@@ -255,7 +270,7 @@ export default function EventForm({
                     <Grid.Col span={12}>
                         <Textarea
                             withAsterisk
-                            minRows={5}
+                            minRows={15}
                             label="Public description"
                             description="This description is public. Use note for a private information"
                             placeholder="Put your description here"
@@ -306,8 +321,8 @@ export default function EventForm({
                         <Textarea
                             minRows={5}
                             label="Application template"
-                            description="Each applicant will be asked to fill this template. The application will be e2e encrypted and only you will be able to read it."
-                            placeholder="Name: ...&#10;Discord: ...&#10;T-shirt size: ..."
+                            description="Each applicant will be asked to fill the message. The message will be e2e encrypted and only you will be able to read it."
+                            placeholder="Where are you from, what is your T-shirt size, ..."
                             {...form.getInputProps('application_template')}
                         />
                     </Grid.Col>
@@ -345,26 +360,32 @@ export default function EventForm({
                             searchable
                             creatable
                             getCreateLabel={(query) => `+ ${query}`}
-                            data={defaultTags}
+                            data={[...defaultTags, ...form.values.tags]}
                             value={form.values.tags}
                             maxSelectedValues={10}
                             onChange={(value) => {
+                                console.log('change');
+                                console.log(form.values.tags);
                                 console.log(value);
-                                form.setFieldValue(
-                                    'tags', 
-                                    value
-                                );
+
+                                form.setFieldValue('tags', [...value]);
                             }}
+                            error={form.errors.tags}
                             onCreate={(value) => {
-                                console.log('create', value, form.values.tags);
-                                form.setFieldValue('tags', [...form.values.tags, value]);
+                                console.log('create', value);
+                                // form.setFieldValue('tags', [...form.values.tags, value]);
                                 return value;
                             }}
                         />
                     </Grid.Col>
                     <Grid.Col>
                         <Group position="center" mt="md">
-                            <Button type="submit">Encrypt note and continue</Button>
+                            <Button 
+                                type="submit"
+                                loading={signing}
+                            >
+                                { signing ? 'Signing' : 'Encrypt note and continue' }
+                            </Button>
                         </Group>
                     </Grid.Col>
                 </Grid>

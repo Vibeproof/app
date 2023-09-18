@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 
 import { Container, Grid, Group, Textarea, Button, TextInput } from "@mantine/core";
 import { isEmail, useForm } from "@mantine/form";
-import { Event, EventApplicationContacts, EventApplicationData, cryptography } from "@snaphost/api";
+import { Event, EventApplicationContacts, EventApplicationData, cryptography } from "@vibeproof/api";
 import { createWalletClient, custom } from 'viem'
 import { mainnet } from 'viem/chains'
 import { decodeBase64, encodeBase64 } from "tweetnacl-util";

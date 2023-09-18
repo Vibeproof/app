@@ -1,42 +1,66 @@
 import React, { useEffect } from "react";
 
 
-import { Container, Grid } from "@mantine/core";
+import { Container, Grid, Pagination } from "@mantine/core";
 import rest from '@feathersjs/rest-client';
-import { ClientApplication, createClient, Event } from '@snaphost/api';
+import { ClientApplication, createClient, Event } from '@vibeproof/api';
 import EventCard from "../../components/events/EventCard";
 import { useNavigate } from "react-router-dom";
+import Loading from "../../components/Loading";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { client } from "../../utils/client";
 
 
 export default function EventsSearchPage() {
     const navigate = useNavigate();
 
-    const connection = rest('http://localhost:3030')
-        .fetch(window.fetch.bind(window));
+    const [events, setEvents] = React.useState<Event[] | null>(null);
+    const [totalEvents, setTotalEvents] = React.useState<number | null>(null);
 
-    const client = createClient(connection);
+    const fetchTotalEvents = async () => {
+        const {
+            total
+        } = await client.service('events').find({
+            query: {
+                $limit: 0
+            }
+        });
 
-    const [events, setEvents] = React.useState<Event[]>([]);
+        setTotalEvents(total);
+    }
+
+    const fetchEvents = async () => {
+        console.log('loading');
+        console.log(events === null ? 0 : events.length);
+        const events_ = await client.service('events').find({
+            query: {
+                $skip: events === null ? 0 : events.length,
+                $limit: 15,
+                $sort: {
+                    'timestamp': -1
+                }
+            }
+        });
+
+        if (events === null) {
+            setEvents(events_.data);
+        } else {
+            setEvents([...events, ...events_.data]);
+        }
+    }
 
     useEffect(() => {
-        const fetchEvents = async () => {
-            const events = await client.service('events').find({
-                query: {
-                    $sort: {
-                        'timestamp': -1
-                    }
-                }
-            });
-
-            setEvents(events.data);
-        }
-
         fetchEvents();
+        fetchTotalEvents();
     }, []);
 
-    const eventComponents = events.map((event, i) => {
+    if (events === null || totalEvents === null) {
+        return <Loading/>;
+    }
+
+    const eventComponents = events?.map((event, i) => {
         return (
-            <Grid.Col key={i} span={4}>
+            <Grid.Col md={6} sm={12} key={i} lg={4}>
                 <EventCard event={event} onClick={(event: Event) => {
                     navigate(`/events/${event.id}`);
                 }}/>
@@ -45,10 +69,19 @@ export default function EventsSearchPage() {
     });
 
     return (
-        <Container size='lg' pt={50}>
-            <Grid>
-                {eventComponents}
-            </Grid>
+        <Container size='lg' pt={50} id="events">
+            <InfiniteScroll
+                dataLength={events.length}
+                next={() => fetchEvents()}
+                hasMore={events.length < totalEvents}
+                loader={<Loading/>}
+                scrollThreshold={0.9}
+                // scrollableTarget="events"
+            >
+                <Grid>
+                    { eventComponents }
+                </Grid>
+            </InfiniteScroll>
         </Container>
     )
 }

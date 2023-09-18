@@ -1,15 +1,25 @@
 import React, { useEffect } from 'react';
 
-import { Container, createStyles, Grid, Overlay, rem, Title, Text, Button, Image, Card, Divider, Loader, Center, Anchor, Tabs, Badge, Group } from '@mantine/core';
+import { Container, createStyles, Grid, Overlay, rem, Title, Text, Button, Image, Card, Divider, Loader, Center, Anchor, Tabs, Badge, Group, Modal, useMantineTheme } from '@mantine/core';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import rest from '@feathersjs/rest-client';
-import { ClientApplication, createClient, Event, EventApplication, ResponseType } from '@snaphost/api';
+import { ClientApplication, createClient, cryptography, Event, EventApplication, Keystore, ResponseType } from '@vibeproof/api';
 import moment from 'moment';
 import { HUMAN_DATE_TIME_FORMAT } from '../../utils';
 import { IconInfoCircle, IconInfoCircleFilled, IconMessageCircle, IconPhoto, IconSettings, IconShield } from '@tabler/icons-react';
 import ApplicationsManager from '../../components/applications/ApplicationsManager';
 import { useAccount } from 'wagmi';
+import { fetchEnsName } from '@wagmi/core'
+import Loading from '../../components/Loading';
+import EventRequirements from '../../components/events/EventRequirements';
+import { useWindowScroll } from '@mantine/hooks';
+import ApplicationDetails from '../../components/applications/ApplicationDetails';
+import { notifications } from '@mantine/notifications';
+import { createWalletClient, custom } from 'viem'
+import { mainnet } from 'viem/chains'
+import { decodeBase64, encodeUTF8 } from "tweetnacl-util";
+import { box, sign, BoxKeyPair, SignKeyPair } from "tweetnacl";
+import { client } from '../../utils/client';
 
 
 const useStyles = createStyles((theme) => ({
@@ -24,21 +34,30 @@ const useStyles = createStyles((theme) => ({
 }));
 
 
+enum ApplicationStatus {
+    NOT_EXISTS = 'not_exists',
+    PENDING = 'pending',
+    APPROVED = 'approved',
+    REJECTED = 'rejected'
+}
+
 
 export default function EventsDetailsPage() {
     const params = useParams();
     const navigate = useNavigate();
-
+    const [, scrollTo] = useWindowScroll();
+    const theme = useMantineTheme();
     const { address, isConnected } = useAccount();
 
-    const connection = rest('http://localhost:3030')
-        .fetch(window.fetch.bind(window));
-    const client = createClient(connection);
-
     const [event, setEvent] = React.useState<Event | null>(null);
+    const [reviewedApplication, setReviewedApplication] = React.useState<EventApplication | null>(null);
+    const [applicationStatus, setApplicationStatus] = React.useState<ApplicationStatus | null>(null);
     const [application, setApplication] = React.useState<EventApplication | null>(null);
+    const [keystore, setKeystore] = React.useState<Keystore | null>(null);
 
     useEffect(() => {
+        scrollTo({ y: 0 });
+
         const fetchEvent = async () => {
             const event = await client.service('events').get(params.id as string);
 
@@ -51,23 +70,36 @@ export default function EventsDetailsPage() {
     useEffect(() => {
         const fetchApplication = async () => {
             if (!isConnected || address === undefined) {
+                setApplicationStatus(ApplicationStatus.NOT_EXISTS);
                 setApplication(null);
+
                 return;
             }
 
-            const application = await client.service('event-applications').find({
+            const applications = await client.service('event-applications').find({
                 query: {
                     event_id: params.id,
                     owner: address
                 }
             });
             
-            console.log(application);
-
-            if (application.total === 0) {
+            if (applications.total === 0) {
+                setApplicationStatus(ApplicationStatus.NOT_EXISTS);
                 setApplication(null);
             } else {
-                setApplication(application.data[0]);
+                const {
+                    data: [application]
+                } = applications;
+
+                if (application.response === null) {
+                    setApplicationStatus(ApplicationStatus.PENDING);
+                } else if (application.response.type === ResponseType.APPROVED) {
+                    setApplicationStatus(ApplicationStatus.APPROVED);
+                } else {
+                    setApplicationStatus(ApplicationStatus.REJECTED);
+                }
+
+                setApplication(application);
             }
         };
 
@@ -76,155 +108,298 @@ export default function EventsDetailsPage() {
 
     const { classes } = useStyles();
 
+    const openTicket = async () => {
+        console.log('opening')
+    }
+
     const applyButton = () => {
-        if (application === null) {
-            return (
-                <Button 
-                    fullWidth 
-                    mt='lg' 
-                    onClick={() => navigate(`/applications/create/${params.id}`)}
-                >
-                    Apply
-                </Button>
-            );
-        } else {
-            if (application.response === null) {
+        if (applicationStatus === null) return null;
+
+        if (applicationStatus === ApplicationStatus.NOT_EXISTS) {
+            if (moment().isAfter(event?.end)) {
                 return (
-                    <Button
-                        fullWidth
-                        mt='lg'
+                    <Button 
+                        fullWidth 
+                        mt='lg' 
                         disabled
                     >
-                        Application is pending
+                        Event has already ended
                     </Button>
                 );
-            } else if (application.response.type === ResponseType.APPROVED) {
+            } else if (moment().isAfter(event?.start)) {
                 return (
-                    <Button
-                        fullWidth
-                        mt='lg'
-                        color='green'
+                    <Button 
+                        fullWidth 
+                        mt='lg' 
+                        disabled
                     >
-                        View ticket
+                        Event has already started
                     </Button>
                 );
             } else {
                 return (
-                    <Button
-                        fullWidth
-                        mt='lg'
-                        disabled
+                    <Button 
+                        fullWidth 
+                        mt='lg' 
+                        onClick={() => navigate(`/applications/create/${params.id}`)}
                     >
-                        Rejected
+                        Apply
                     </Button>
-                );
+                );    
             }
+        } else if (applicationStatus === ApplicationStatus.PENDING) {
+            return (
+                <Button
+                    fullWidth
+                    mt='lg'
+                    disabled
+                >
+                    Application is pending
+                </Button>
+            );
+        } else if (applicationStatus === ApplicationStatus.APPROVED) {
+            return (
+                <Button
+                    fullWidth
+                    mt='lg'
+                    color='green'
+                    onClick={async () => {
+                        if (application === null) return null;
+
+                        if (keystore === null) {
+                            if (address === application.owner) {
+                                await decryptKeystore();
+                                await setReviewedApplication(application);
+                            } else if (isConnected === false) {
+                                notifications.show({
+                                    title: 'Connect wallet',
+                                    message: 'Connect wallet to decrypt the applications',
+                                    color: 'yellow'
+                                });
+                            } else {
+                                notifications.show({
+                                    title: 'Wrong address',
+                                    message: 'The connected address is not the invite\'s owner. Try different address.',
+                                    color: 'red'
+                                });
+                            }
+                        } else {
+                            setReviewedApplication(application);
+                        }
+                    }}
+                >
+                    View ticket
+                </Button>
+            );
+        } else {
+            return (
+                <Button
+                    fullWidth
+                    mt='lg'
+                    color='red'
+                    disabled
+                >
+                    Rejected
+                </Button>
+            );
         }
     };
 
-    if (event === null || application == null) {
-        return (
-            <Center mih={700}>
-                <Loader />
-            </Center>
+    const decryptKeystore = async () => {
+        const client = createWalletClient({
+            chain: mainnet,
+            // @ts-ignore
+            transport: custom(window.ethereum)
+        });
+
+        const keystore_decrypted = await client.request({
+            // @ts-ignore
+            method: 'eth_decrypt',
+            params: [
+                // @ts-ignore
+                encodeUTF8(decodeBase64(application.keystore)),
+                address as string
+            ],
+        }).then((result: any) => JSON.parse(result));
+
+        setKeystore(keystore_decrypted);
+    };
+
+    const decryptApplicationContacts = (application: EventApplication, keystore: Keystore) => {
+        const contacts = cryptography.symmetric.decrypt(
+            application.contacts,
+            keystore.encryptionKey
         );
+
+        return JSON.parse(contacts);
+    }
+
+    const decryptApplicationMessage = (application: EventApplication, keystore: any) => {
+        const message = cryptography.symmetric.decrypt(
+            application.message,
+            keystore.encryptionKey
+        );
+
+        return message;
+    }
+
+    const decryptEventNote = (event: Event, keystore: Keystore) => {
+        if (application === null) return '';
+
+        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.privateKey));
+
+        const shared = box.before(
+            decodeBase64(event.public_key),
+            ephemeralKeyPair.secretKey
+        );
+
+        const shared_key = cryptography.assymetric.decrypt(
+            shared,
+            application.response.shared_key
+        );
+
+        const note = cryptography.symmetric.decrypt(
+            application.event.note,
+            shared_key
+        );
+
+        return note;
+    }
+
+    if (event === null || applicationStatus == null) {
+        return <Loading />;
     }
 
     return (
-        <Container size='lg'>
-            <Grid>
-                <Grid.Col span={12} mb='sm'>
-                    <Image height={300} src={event.image}/>
-                </Grid.Col>
+        <>
+            <Modal 
+                centered
+                title='Application'
+                size='lg'
+                withCloseButton={false}
+                opened={reviewedApplication !== null}
+                onClose={() => setReviewedApplication(null)} 
+                overlayProps={{
+                    color: theme.colorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[2],
+                    opacity: 0.55,
+                    blur: 3,
+                }}
+            >
+                {
+                    keystore !== null &&
+                    reviewedApplication !== null &&
+                    (
+                        <ApplicationDetails 
+                            defaultTab="note"
+                            application={reviewedApplication}
+                            message={decryptApplicationMessage(reviewedApplication, keystore)}
+                            contacts={decryptApplicationContacts(reviewedApplication, keystore)}
+                            note={decryptEventNote(event, keystore)}
+                            showApproveButtons={false}
+                        />
+                    )
+                }
+            </Modal>
 
-                <Grid.Col span={12}>
-                    <Tabs color="dark" defaultValue="about">
-                        <Tabs.List>
-                            <Tabs.Tab value="about" icon={<IconInfoCircle size="0.8rem" />}>
-                                About
-                            </Tabs.Tab>
-                            
-                            <Tabs.Tab value="settings" icon={<IconShield size="0.8rem" />}>
-                                Requirements
-                            </Tabs.Tab>
+            <Container size='lg'>
+                <Grid>
+                    <Grid.Col span={12} mb='sm'>
+                        <Image height={400} src={event.image} withPlaceholder/>
+                    </Grid.Col>
 
-                            <Tabs.Tab 
-                                value="messages"
-                                icon={<IconMessageCircle size="0.8rem" />}
-                                rightSection={
-                                    <Badge w={16} h={16} sx={{ pointerEvents: 'none' }} variant="filled" size="xs" p={0}>
-                                        { event.applications }
-                                    </Badge>
-                                }
-                            >
-                                Applications
-                            </Tabs.Tab>
-                        </Tabs.List>
+                    <Grid.Col span={12}>
+                        <Tabs color="dark" defaultValue="about">
+                            <Tabs.List mb='md'>
+                                <Tabs.Tab value="about" icon={<IconInfoCircle size="0.8rem" />}>
+                                    About
+                                </Tabs.Tab>
+                                
+                                <Tabs.Tab value="requirements" icon={<IconShield size="0.8rem" />}>
+                                    Claims
+                                </Tabs.Tab>
 
-                        <Tabs.Panel value="about" pt="xs">
-                            <Grid>
-                                <Grid.Col span={8}>
-                                    <Title>{ event?.title }</Title>
-                                    <Anchor href={ event.link } target='_blank'>{ event.link }</Anchor>
+                                <Tabs.Tab 
+                                    value="messages"
+                                    icon={<IconMessageCircle size="0.8rem" />}
+                                    rightSection={
+                                        <Badge w={16} h={16} sx={{ pointerEvents: 'none' }} variant="filled" size="xs" p={0}>
+                                            { event.applications }
+                                        </Badge>
+                                    }
+                                >
+                                    Applications
+                                </Tabs.Tab>
+                            </Tabs.List>
 
-                                    <Text className={classes.description} mt='lg'>
-                                        { event?.description }
-                                    </Text>
-                                </Grid.Col>
+                            <Tabs.Panel value="about" pt="xs">
+                                <Grid>
+                                    <Grid.Col span={8}>
+                                        <Title>{ event?.title }</Title>
+                                        <Anchor href={ event.link } target='_blank'>{ event.link }</Anchor>
 
-                                <Grid.Col span={4}>
-                                    <Card withBorder>
-                                        <Title order={5} className={classes.spec}>Organizer</Title>
-                                        <Anchor fz='md' href='#'> { event.organizer ? event.organizer : `${event.owner.slice(0,7)}...${event.owner.slice(35)}` } </Anchor>
+                                        <Text className={classes.description} mt='lg'>
+                                            { event?.description }
+                                        </Text>
+                                    </Grid.Col>
 
-                                        <Divider my='sm'/>
+                                    <Grid.Col span={4}>
+                                        <Card withBorder>
+                                            <Title order={5} className={classes.spec}>Organizer</Title>
+                                            <Anchor fz='md' href='#'> { event.organizer ? event.organizer : `${event.owner.slice(0,7)}...${event.owner.slice(35)}` } </Anchor>
 
-                                        <Title order={5} className={classes.spec}>Location</Title>
-                                        <Text>{ event.location ? event.location : 'Online' }</Text>
+                                            <Divider my='sm'/>
 
-                                        <Divider my='sm'/>
+                                            <Title order={5} className={classes.spec}>Location</Title>
+                                            <Text>{ event.location ? event.location : 'Online' }</Text>
 
-                                        <Title order={5} className={classes.spec}>Start at</Title>
-                                        <Text>{ moment(event.start).format(HUMAN_DATE_TIME_FORMAT) }</Text>
+                                            <Divider my='sm'/>
 
-                                        <Divider my='sm'/>
+                                            <Title order={5} className={classes.spec}>Start at</Title>
+                                            <Text>{ moment(event.start).format(HUMAN_DATE_TIME_FORMAT) }</Text>
 
-                                        <Title order={5} className={classes.spec}>Ends at</Title>
-                                        <Text>{ moment(event.end).format(HUMAN_DATE_TIME_FORMAT) }</Text>
+                                            <Divider my='sm'/>
 
-                                        <Divider my='sm'/>
+                                            <Title order={5} className={classes.spec}>Ends at</Title>
+                                            <Text>{ moment(event.end).format(HUMAN_DATE_TIME_FORMAT) }</Text>
 
-                                        <Title order={5} className={classes.spec}>Tags</Title>
-                                        <Group mt='xs'>
-                                            {
-                                                event.tags.map((tag, i) => {
-                                                    return (
-                                                        <Badge key={i}>{tag}</Badge>
-                                                    );
-                                                }) 
-                                            }
-                                        </Group>
+                                            <Divider my='sm'/>
 
-                                        { applyButton() }
-                                    </Card>
-                                </Grid.Col>
-                            </Grid>
-                        </Tabs.Panel>
+                                            <Title order={5} className={classes.spec}>Tags</Title>
+                                            <Group mt='xs' spacing='xs'>
+                                                {
+                                                    event.tags.map((tag, i) => {
+                                                        return (
+                                                            <Badge key={i}>{tag}</Badge>
+                                                        );
+                                                    }) 
+                                                }
+                                            </Group>
 
-                        <Tabs.Panel value="messages" pt="xs">
-                            <Grid>
-                                <Grid.Col span={12}>
-                                    <ApplicationsManager event={event}/>
-                                </Grid.Col>
-                            </Grid>
-                        </Tabs.Panel>
+                                            { applyButton() }
+                                        </Card>
+                                    </Grid.Col>
+                                </Grid>
+                            </Tabs.Panel>
 
-                        <Tabs.Panel value="settings" pt="xs">
-                            Settings tab content
-                        </Tabs.Panel>
-                    </Tabs>
-                </Grid.Col>
-            </Grid>
-        </Container>
+                            <Tabs.Panel value="messages" pt="xs">
+                                <Grid>
+                                    <Grid.Col span={12}>
+                                        <ApplicationsManager event={event}/>
+                                    </Grid.Col>
+                                </Grid>
+                            </Tabs.Panel>
+
+                            <Tabs.Panel value="requirements" pt="xs">
+                                <Grid>
+                                    <Grid.Col span={12}>
+                                        <EventRequirements event={event} />
+                                    </Grid.Col>
+                                </Grid>
+                            </Tabs.Panel>
+                        </Tabs>
+                    </Grid.Col>
+                </Grid>
+            </Container>
+        </>
     );
 }

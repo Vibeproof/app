@@ -6,12 +6,14 @@ import { useAccount } from "wagmi";
 import { IconCircle, IconCircleCheck, IconEyeCheck, IconFileText, IconWallet } from "@tabler/icons-react";
 
 import rest from '@feathersjs/rest-client';
-import { ClientApplication, createClient, Event, EventApplication } from '@snaphost/api';
+import { ClientApplication, createClient, Event, EventApplication } from '@vibeproof/api';
 import ConnectWallet from "../../components/ConnectWallet";
 import ApplicationForm, { ApplicationFormData } from "../../components/applications/ApplicationForm";
 import ApplicationProveRequirements from "../../components/applications/ApplicationProveRequirements";
 import ApplicationSubmit from "../../components/applications/ApplicationSubmit";
 import { SismoConnectResponse } from "@sismo-core/sismo-connect-react";
+import Loading from "../../components/Loading";
+import { client } from "../../utils/client";
 
 
 enum ApplicationCreationSteps {
@@ -31,10 +33,6 @@ export default function ApplicationsCreatePage() {
     const [applicationFormData, setApplicationFormData] = useState<ApplicationFormData | null>(null);
     const [sismoResponse, setSismoResponse] = useState<SismoConnectResponse | null>(null);
 
-    const connection = rest('http://localhost:3030')
-        .fetch(window.fetch.bind(window));
-    const client = createClient(connection);
-
     useEffect(() => {
         const fetchEvent = async () => {
             const event = await client.service('events').get(params.id as string);
@@ -49,9 +47,15 @@ export default function ApplicationsCreatePage() {
         if (isConnected === false) {
             setStep(ApplicationCreationSteps.CONNECT_WALLET);
         } else {
-            setStep(ApplicationCreationSteps.PROVE_REQUIREMENTS);
+            if (event !== null) {
+                if (event.sismo.claims.length === 0) {
+                    setStep(ApplicationCreationSteps.FILL_DETAILS);
+                } else {
+                    setStep(ApplicationCreationSteps.PROVE_REQUIREMENTS);
+                }
+            }
         }
-    }, [address]);
+    }, [address, event]);
 
     const stepIcon = (step: ApplicationCreationSteps) => {
         const size = 20;
@@ -88,12 +92,16 @@ export default function ApplicationsCreatePage() {
         setStep(ApplicationCreationSteps.DONE);
     }
 
+    if (event === null) {
+        return <Loading />;
+    }
+
 
     return (
         <Container size='lg' pt={50}>
             <Grid>
                 <Grid.Col span={3}>
-                    <Stepper active={step} orientation="vertical" completedIcon={stepIcon(ApplicationCreationSteps.CONNECT_WALLET)}>
+                    <Stepper active={step} orientation="vertical">
                         <Stepper.Step
                             icon={stepIcon(ApplicationCreationSteps.CONNECT_WALLET)}
                             label="Step 1"

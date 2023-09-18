@@ -10,11 +10,12 @@ import {
     Event,
     EventApplication, 
     EventApplicationData,
-} from '@snaphost/api';
+} from '@vibeproof/api';
 import { Button, Center, Container, Title, Space } from "@mantine/core";
 import moment from "moment";
 import { signTypedData } from '@wagmi/core'
 import { decodeUTF8, encodeBase64 } from "tweetnacl-util";
+import { client } from "../../utils/client";
 
 
 export default function ApplicationSubmit({
@@ -29,11 +30,6 @@ export default function ApplicationSubmit({
     sismoResponse: SismoConnectResponse,
 }) {
     const navigate = useNavigate();
-    
-    const connection = rest('http://localhost:3030')
-        .fetch(window.fetch.bind(window));
-
-    const client = createClient(connection);
 
     const submit = async () => {
         const data: Omit<EventApplicationData, 'signature'> = {

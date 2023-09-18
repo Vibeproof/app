@@ -2,7 +2,7 @@ import { ActionIcon, Avatar, Badge, Button, Card, Center, Grid, Group, Loader, M
 import React, { useEffect } from "react";
 
 import rest from '@feathersjs/rest-client';
-import { ClientApplication, createClient, Event, EventApplication, Keystore, ResponseType } from '@snaphost/api';
+import { ClientApplication, createClient, cryptography, Event, EventApplication, EventApplicationResponseData, Keystore, ResponseType } from '@vibeproof/api';
 import { useAccount } from "wagmi";
 
 import { createWalletClient, custom } from 'viem'
@@ -14,9 +14,13 @@ import AddressAvatar from "../AddressAvatar";
 import { renderDataURI } from "@codingwithmanny/blockies";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from '@mantine/notifications';
-import { IconArrowRight, IconSearch } from "@tabler/icons-react";
+import { IconArrowRight, IconSearch, IconShieldOff, IconUserOff } from "@tabler/icons-react";
 import ApplicationDetails from "./ApplicationDetails";
 import { getApplicationBadge } from "../../utils/applications";
+import Loading from "../Loading";
+import Empty from "../Empty";
+import { box, sign, BoxKeyPair, SignKeyPair } from "tweetnacl";
+import { client } from "../../utils/client";
 
 
 interface ApplicationDecrypted {
@@ -36,10 +40,6 @@ export default function ApplicationsManager({
     const [applications, setApplications] = React.useState<EventApplication[] | null>(null);
     const [reviewedApplication, setReviewedApplication] = React.useState<EventApplication | null>(null);
     
-    const connection = rest('http://localhost:3030')
-        .fetch(window.fetch.bind(window));
-    const client = createClient(connection);
-
     useEffect(() => {
         const fetchApplications = async () => {
             const {
@@ -49,8 +49,6 @@ export default function ApplicationsManager({
                     event_id: event.id
                 }
             });
-
-            console.log(applications);
 
             setApplications(applications);
         }
@@ -64,8 +62,6 @@ export default function ApplicationsManager({
             // @ts-ignore
             transport: custom(window.ethereum)
         });
-
-        // console.log(encodeUTF8(decodeBase64(event.keystore)));
 
         const keystore_decrypted = await client.request({
             // @ts-ignore
@@ -82,7 +78,7 @@ export default function ApplicationsManager({
 
     const applicationCards = applications?.map((application: EventApplication, i) => {
         return (
-            <Grid.Col lg={4} sm={12}>
+            <Grid.Col lg={4} sm={12} key={i}>
                 <Card withBorder>
                     <Group position="apart">
                         <Group>
@@ -106,13 +102,13 @@ export default function ApplicationsManager({
                             } else if (isConnected === false) {
                                 notifications.show({
                                     title: 'Connect wallet',
-                                    message: 'Connect wallet to decrypt the event application',
-                                    color: 'red'
+                                    message: 'Connect wallet to decrypt the applications',
+                                    color: 'yellow'
                                 });
                             } else {
                                 notifications.show({
                                     title: 'Wrong address',
-                                    message: 'The connected address is not the event\'s owner',
+                                    message: 'The connected address is not the event\'s owner. Try different address.',
                                     color: 'red'
                                 });
                             }
@@ -125,22 +121,111 @@ export default function ApplicationsManager({
         );
     });
 
-    if (applications === null) {
-        return (
-            <Center mih={700}>
-                <Loader />
-            </Center>
+    const decryptApplicationMessage = (
+        application: EventApplication,
+        keystore: Keystore
+    ) => {
+        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.privateKey));
+
+        const shared = box.before(
+            decodeBase64(application.public_key),
+            ephemeralKeyPair.secretKey
+        );    
+
+        const shared_key = cryptography.assymetric.decrypt(
+            shared,
+            application.shared_key
         );
+    
+        const message = cryptography.symmetric.decrypt(
+            application.message,
+            shared_key
+        );
+
+        return message;
+    }
+
+    const decryptApplicationContacts = (
+        application: EventApplication,
+        keystore: Keystore
+    ) => {
+        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.privateKey));
+
+        const shared = box.before(
+            decodeBase64(application.public_key),
+            ephemeralKeyPair.secretKey
+        );    
+
+        const shared_key = cryptography.assymetric.decrypt(
+            shared,
+            application.shared_key
+        );
+
+        const contacts = JSON.parse(
+            cryptography.symmetric.decrypt(application.contacts, shared_key)
+        );
+
+        return contacts;
+    }
+
+    if (applications === null) {
+        return <Loading />;
+    }
+
+    if (applications.length === 0) {
+        return <Empty 
+            icon={<IconUserOff size={28} />} 
+            text="No applications yet"
+        />;
+    }
+
+    const setApplicationResponse = async (
+        response: ResponseType,
+        application: EventApplication,
+        keystore: Keystore
+    ) => {
+        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.privateKey));
+
+        const shared = box.before(
+            decodeBase64(application.public_key),
+            ephemeralKeyPair.secretKey
+        );
+
+        const shared_key = cryptography.assymetric.encrypt(
+            shared,
+            keystore.encryptionKey
+        );
+
+        const data: Omit<EventApplicationResponseData, 'signature'> = {
+            id: crypto.randomUUID() as string,
+            type: response,
+            event_application_id: application.id,
+            shared_key: response === ResponseType.APPROVED ? shared_key : '',
+            timestamp: moment().toISOString(),
+            version: 0,
+        };
+
+        const signatureKeyPair = sign.keyPair.fromSecretKey(decodeBase64(keystore.signatureKey));
+
+        const signature = cryptography.signature.sign(
+            JSON.stringify(data),
+            signatureKeyPair.secretKey
+        );
+
+        await client.service('event-application-responses').create({
+            ...data,
+            signature
+        });
     }
 
     return (
         <>
             <Modal 
                 centered
+                size='lg'
                 withCloseButton={false}
                 opened={reviewedApplication !== null}
                 onClose={() => setReviewedApplication(null)} 
-                // title="Review application"
                 overlayProps={{
                     color: theme.colorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[2],
                     opacity: 0.55,
@@ -152,9 +237,18 @@ export default function ApplicationsManager({
                     reviewedApplication !== null &&
                     (
                         <ApplicationDetails 
+                            defaultTab="message"
                             application={reviewedApplication}
-                            keystore={keystore}
-                            client={client}
+                            message={decryptApplicationMessage(reviewedApplication, keystore)}
+                            contacts={decryptApplicationContacts(reviewedApplication, keystore)}
+                            note=''
+                            setApplicationResponse={async (response: ResponseType) => {
+                                await setApplicationResponse(
+                                    response,
+                                    reviewedApplication,
+                                    keystore
+                                );
+                            }}
                         />
                     )
                 }

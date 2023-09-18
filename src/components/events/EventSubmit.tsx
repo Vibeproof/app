@@ -4,14 +4,15 @@ import { EventFormData } from "./EventForm";
 import { ClaimRequest } from "@sismo-core/sismo-connect-react";
 import { Center, Container, Title, Text, Button, Space } from "@mantine/core";
 
-import { eventTypes, domain, EventData } from '@snaphost/api';
+import { eventTypes, domain, EventData } from '@vibeproof/api';
 
 import { signTypedData } from '@wagmi/core'
 import moment from "moment";
 
 import rest from '@feathersjs/rest-client';
-import { ClientApplication, createClient, Event } from '@snaphost/api';
+import { ClientApplication, createClient, Event } from '@vibeproof/api';
 import { useNavigate } from "react-router-dom";
+import { client } from "../../utils/client";
 
 
 export default function EventSubmit({
@@ -25,20 +26,15 @@ export default function EventSubmit({
 }) {
     const navigate = useNavigate()
 
-    const connection = rest('http://localhost:3030')
-        .fetch(window.fetch.bind(window));
-
-    const client = createClient(connection);
-
-    console.log(eventFormData);
+    const [submitting, setSubmitting] = React.useState<boolean>(false);
 
     const submit = async () => {
         const data: Omit<EventData, 'signature'> = {
             id: eventFormData.id,
-            title: eventFormData.title,
-            description: eventFormData.description,
+            title: eventFormData.title.trim(),
+            description: eventFormData.description.trim(),
             contacts: eventFormData.contacts,
-            application_template: eventFormData.application_template,
+            application_template: eventFormData.application_template.trim(),
             public_key: eventFormData.public_key,
             signature_public_key: eventFormData.signature_public_key,
             keystore: eventFormData.keystore,
@@ -96,8 +92,18 @@ export default function EventSubmit({
             <Space h='lg' />
 
             <Center>
-                <Button onClick={() => submit()}>
-                    Sign and submit
+                <Button loading={submitting} onClick={() => {
+                    setSubmitting(true);
+
+                    submit()
+                        .catch(e => {
+                            setSubmitting(false);
+                        })
+                        .then(() => {
+                            setSubmitting(false);
+                        })
+                }}>
+                    { submitting ? 'Submitting' : 'Sign and submit' }
                 </Button>
             </Center>
         </Container>

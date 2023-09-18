@@ -1,14 +1,14 @@
 import { Badge } from "@mantine/core"
-import { EventApplication, EventApplicationContacts, ResponseType } from "@snaphost/api"
+import { EventApplication, EventApplicationContacts, ResponseType } from "@vibeproof/api"
 import { IconAt, IconMail, IconPhone, IconUser } from "@tabler/icons-react"
 
 export const getApplicationBadge = (eventApplication: EventApplication) => {
     if (eventApplication.response == null) {
-        return <Badge c='gray'>Pending</Badge>
+        return <Badge color='gray'>Pending</Badge>
     } else if (eventApplication.response.type === ResponseType.APPROVED) {
-        return <Badge c='green'>Approved</Badge>
+        return <Badge color='green'>Approved</Badge>
     } else {
-        return <Badge c='red'>Rejected</Badge>
+        return <Badge color='red'>Rejected</Badge>
     }
 }
 

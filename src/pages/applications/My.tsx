@@ -1,22 +1,23 @@
 import React, { useEffect } from "react";
 
 import rest from '@feathersjs/rest-client';
-import { createClient, EventApplication, ResponseType } from '@snaphost/api';
+import { createClient, EventApplication, ResponseType } from '@vibeproof/api';
 import { useAccount } from "wagmi";
 import ConnectWallet from "../../components/ConnectWallet";
 import { Anchor, Badge, Container, Table } from "@mantine/core";
 import moment from "moment";
 import { Link } from "react-router-dom";
+import Loading from "../../components/Loading";
+import Empty from "../../components/Empty";
+import { IconTicketOff } from "@tabler/icons-react";
+import { getApplicationBadge } from "../../utils/applications";
+import { client } from "../../utils/client";
 
 
 export default function ApplicationsMyPage() {
     const { address, isConnected } = useAccount();
 
-    const connection = rest('http://localhost:3030')
-        .fetch(window.fetch.bind(window));
-    const client = createClient(connection);
-
-    const [eventApplications, setEventApplications] = React.useState<EventApplication[]>([]);
+    const [eventApplications, setEventApplications] = React.useState<EventApplication[] | null>(null);
 
     useEffect(() => {
         if (!isConnected) return;
@@ -25,6 +26,9 @@ export default function ApplicationsMyPage() {
             const eventApplications = await client.service('event-applications').find({
                 query: {
                     owner: address as string,
+                    $sort: {
+                        'timestamp': -1
+                    }
                 }
             });
 
@@ -36,17 +40,7 @@ export default function ApplicationsMyPage() {
         fetchEventApplications();
     }, [address]);
 
-    const getApplicationBadge = (eventApplication: EventApplication) => {
-        if (eventApplication.response == null) {
-            return <Badge c='gray'>Pending</Badge>
-        } else if (eventApplication.response.type === ResponseType.APPROVED) {
-            return <Badge c='green'>Approved</Badge>
-        } else {
-            return <Badge c='red'>Rejected</Badge>
-        }
-    }
-
-    const eventApplicationRows = eventApplications.map((eventApplication: EventApplication, i) => {
+    const eventApplicationRows = eventApplications?.map((eventApplication: EventApplication, i) => {
         return (
             <tr key={i}>
                 <td>{ <Anchor component={Link} to={`/events/${eventApplication.event.id}`}>{ eventApplication.event.title }</Anchor> }</td>
@@ -59,7 +53,18 @@ export default function ApplicationsMyPage() {
 
     if (!isConnected) return (
         <ConnectWallet />
-    );
+    )
+
+    if (eventApplications == null) {
+        return <Loading />
+    }
+
+    if (eventApplications.length === 0) {
+        return <Empty
+            icon={<IconTicketOff size={28} />}
+            text='You have no invites'
+        />
+    }
 
     return (
         <Container size='lg' pt={50}>

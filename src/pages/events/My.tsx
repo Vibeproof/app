@@ -2,22 +2,22 @@ import React, { useEffect } from "react";
 import { useAccount } from "wagmi";
 
 import rest from '@feathersjs/rest-client';
-import { createClient, Event, EventApplication, ResponseType } from '@snaphost/api';
+import { createClient, Event, EventApplication, ResponseType } from '@vibeproof/api';
 import { Anchor, Badge, Container, Table } from "@mantine/core";
 import ConnectWallet from "../../components/ConnectWallet";
 import moment from "moment";
 import { HUMAN_DATE_TIME_FORMAT } from "../../utils";
 import { Link } from "react-router-dom";
+import { client } from "../../utils/client";
+import Loading from "../../components/Loading";
+import Empty from "../../components/Empty";
+import { IconCalendarCancel } from "@tabler/icons-react";
 
 
 export default function EventsMyPage() {
     const { address, isConnected } = useAccount();
 
-    const connection = rest('http://localhost:3030')
-        .fetch(window.fetch.bind(window));
-    const client = createClient(connection);
-
-    const [events, setEvents] = React.useState<Event[]>([]);
+    const [events, setEvents] = React.useState<Event[] | null>(null);
 
     useEffect(() => {
         if (!isConnected) return;
@@ -39,7 +39,18 @@ export default function EventsMyPage() {
         <ConnectWallet />
     );
 
-    const eventRows = events.map((event: Event, i) => {
+    if (events == null) return (
+        <Loading />
+    );
+
+    if (events.length == 0) return (
+        <Empty
+            icon={<IconCalendarCancel size={28} />}
+            text="You haven't created any events yet."
+        />
+    );
+
+    const eventRows = events?.map((event: Event, i) => {
         return (
             <tr key={i}>
                 <td>{ <Anchor component={Link} to={`/events/${event.id}`}>{ event.title }</Anchor> }</td>
@@ -52,7 +63,7 @@ export default function EventsMyPage() {
 
     return (
         <Container size='lg' pt={50}>
-            <Table striped highlightOnHover>
+            <Table highlightOnHover>
                 <thead>
                     <tr>
                         <th>Event</th>

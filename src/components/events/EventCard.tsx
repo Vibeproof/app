@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Event } from '@snaphost/api';
+import { Event } from '@vibeproof/api';
 import { ActionIcon, Badge, Button, Card, Group, Image, Text, createStyles, rem } from "@mantine/core";
 import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
 
@@ -11,12 +11,12 @@ const useStyles = createStyles((theme) => ({
     },
 
     section: {
-        borderBottom: `${rem(1)} solid ${
-        theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]
-        }`,
+        // borderBottom: `${rem(1)} solid ${
+        //     theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]
+        // }`,
         paddingLeft: theme.spacing.md,
         paddingRight: theme.spacing.md,
-        paddingBottom: theme.spacing.md,
+        paddingBottom: theme.spacing.xs,
     },
 
     description: {
@@ -24,7 +24,7 @@ const useStyles = createStyles((theme) => ({
     },
 
     like: {
-        color: theme.colors.red[6],
+        // color: theme.colors.red[6],
     },
 
     label: {
@@ -32,6 +32,8 @@ const useStyles = createStyles((theme) => ({
         fontSize: theme.fontSizes.xs,
         fontWeight: 700,
     },
+    button: {
+    }
 }));
   
 
@@ -74,13 +76,13 @@ export default function EventCard({
             </Card.Section>
 
             <Card.Section className={classes.section}>
-                <Group spacing={7} mt={5}>
+                <Group spacing={7} my={5}>
                     { tags }
                 </Group>
             </Card.Section>
 
-            <Group mt="xs">
-                <Button radius="md" style={{ flex: 1 }} onClick={() => onClick(event)}>
+            <Group>
+                <Button className={classes.button} radius="md" style={{ flex: 1 }} onClick={() => onClick(event)}>
                     Show details
                 </Button>
     

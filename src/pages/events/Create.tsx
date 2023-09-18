@@ -64,7 +64,7 @@ export default function EventsCreatePage() {
         <Container size='lg' pt={50}>
             <Grid>
                 <Grid.Col span={3}>
-                    <Stepper active={step} orientation="vertical" completedIcon={stepIcon(EventCreationSteps.CONNECT_WALLET)}>
+                    <Stepper active={step} orientation="vertical">
                         <Stepper.Step
                             icon={stepIcon(EventCreationSteps.CONNECT_WALLET)}
                             label="Step 1"
