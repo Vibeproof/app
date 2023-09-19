@@ -31,16 +31,16 @@ export default function EventSubmit({
     const submit = async () => {
         const data: Omit<EventData, 'signature'> = {
             id: eventFormData.id,
-            title: eventFormData.title.trim(),
-            description: eventFormData.description.trim(),
+            title: eventFormData.title,
+            description: eventFormData.description,
             contacts: eventFormData.contacts,
-            application_template: eventFormData.application_template.trim(),
+            application_template: eventFormData.application_template,
             public_key: eventFormData.public_key,
             signature_public_key: eventFormData.signature_public_key,
             keystore: eventFormData.keystore,
 
             tags: eventFormData.tags,
-            link: eventFormData.link === '' ? undefined : eventFormData.link,
+            link: eventFormData.link,
 
             note: eventFormData.note,
             location: eventFormData.location,
@@ -63,11 +63,13 @@ export default function EventSubmit({
             version: 0
         };
 
+        console.log(data);
+        console.log(domain);
+
         const signature = await signTypedData({
             domain,
             message: {
                 ...data,
-                link: data.link || '',
             },
             primaryType: 'Event',
             types: eventTypes

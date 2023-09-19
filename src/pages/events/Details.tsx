@@ -344,8 +344,8 @@ export default function EventsDetailsPage() {
 
                                     <Grid.Col span={4}>
                                         <Card withBorder>
-                                            <Title order={5} className={classes.spec}>Organizer</Title>
-                                            <Anchor fz='md' href='#'> { event.organizer ? event.organizer : `${event.owner.slice(0,7)}...${event.owner.slice(35)}` } </Anchor>
+                                            <Title order={5} className={classes.spec}>Owner</Title>
+                                            <Anchor fz='md' href='#'> { `${event.owner.slice(0,7)}...${event.owner.slice(35)}` } </Anchor>
 
                                             <Divider my='sm'/>
 
