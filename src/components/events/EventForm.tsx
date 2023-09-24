@@ -89,7 +89,12 @@ export default function EventForm({
                     return (value.length < 50) ? null : 'Location too long';
                 }
             },
-            capacity: isInRange({ min: 0 }, 'Capacity can\'t be zero'),
+            capacity: (value) => {
+                console.log(value);
+                if (value === '') return null;
+
+                return isInRange({ min: 0 }, 'Capacity can\'t be zero')(value);
+            },
             description: (value) => {
                 if (value.trim().length === 0) {
                     return 'Description is required';
@@ -187,7 +192,7 @@ export default function EventForm({
             link: values.link,
             contacts: values.contacts,
             location: values.location,
-            capacity: values.capacity,
+            capacity: values.capacity === '' ? 0 : values.capacity,
             description: values.description,
             application_template: values.application_template,
             public_key: encodeBase64(ephemeralKeyPair.publicKey),
@@ -226,7 +231,7 @@ export default function EventForm({
                     <Grid.Col span={6}>
                         <TextInput
                             withAsterisk
-                            label="Title"
+                            label="Event name"
                             placeholder="John's hacker house"
                             {...form.getInputProps('title')}
                         />
@@ -249,9 +254,8 @@ export default function EventForm({
                     </Grid.Col>
                     <Grid.Col span={6}>
                         <NumberInput 
-                            withAsterisk
                             label="Capacity"
-                            description="Maximum amount of participants"
+                            description="Maximum amount of guests"
                             placeholder=""
                             {...form.getInputProps('capacity')}
                         />
@@ -261,9 +265,9 @@ export default function EventForm({
                         <Textarea
                             withAsterisk
                             minRows={15}
-                            label="Public description"
-                            description="This description is public. Use note for a private information"
-                            placeholder="Put your description here"
+                            label="Description"
+                            description="The description is visible on the event page."
+                            placeholder="What is your event about"
                             {...form.getInputProps('description')}
                         />
                     </Grid.Col>
@@ -273,8 +277,8 @@ export default function EventForm({
                             withAsterisk
                             minRows={5}
                             label="Private note"
-                            description="This text will be end-to-end encrypted, meaning that only attendants approved by you will be able to read it."
-                            placeholder="For example exact event's location or link to the private Telegram chat"
+                            description="This text is end-to-end encrypted, ensuring that only approved guests can view it."
+                            placeholder="Example: exact location of the event, link to a private telegram chat"
                             {...form.getInputProps('note')}
                         />
                     </Grid.Col>
@@ -286,8 +290,8 @@ export default function EventForm({
 
                         <Input.Wrapper 
                             id="contacts" 
-                            label="Applicant's details"
-                            description="Applicants are required to provide this information"
+                            label="Guest details"
+                            description="Which information you would like to request from your guests"
                         >
                             <Chip.Group multiple value={form.values.contacts} onChange={(e) => {
                                 console.log(e);
@@ -311,7 +315,7 @@ export default function EventForm({
                         <Textarea
                             minRows={5}
                             label="Application template"
-                            description="Each applicant will be asked to fill the message. The message will be e2e encrypted and only you will be able to read it."
+                            description="Each guest is prompted to provide a message. This message is end-to-end encrypted, ensuring only you can read it."
                             placeholder="Where are you from, what is your T-shirt size, ..."
                             {...form.getInputProps('application_template')}
                         />

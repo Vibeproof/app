@@ -3,16 +3,21 @@ import React, { useEffect } from "react";
 
 import { Container, Grid, Group, Textarea, Button, TextInput } from "@mantine/core";
 import { isEmail, useForm } from "@mantine/form";
-import { Event, EventApplicationContacts, EventApplicationData, Keystore, cryptography } from "@vibeproof/api";
+import { Event, EventApplicationContacts, EventApplicationData, Keystore, applicationTypes, cryptography, domain } from "@vibeproof/api";
 import { createWalletClient, custom } from 'viem'
 import { mainnet } from 'viem/chains'
-import { decodeBase64, encodeBase64 } from "tweetnacl-util";
+import { decodeBase64, decodeUTF8, encodeBase64 } from "tweetnacl-util";
 import { box } from 'tweetnacl';
 import { IconAt, IconBrandTelegram, IconMail, IconPhone, IconUser } from "@tabler/icons-react";
 import {phone} from 'phone';
 import { getContactInputIcon } from "../../utils/applications";
 import { signMessage } from '@wagmi/core'
 import * as text from './../../utils/text';
+import { SismoConnectResponse } from "@sismo-core/sismo-connect-react";
+import { useNavigate } from "react-router-dom";
+import moment from "moment";
+import { signTypedData } from '@wagmi/core'
+import { client } from "../../utils/client";
 
 
 export type ApplicationFormData = Omit<
@@ -24,12 +29,15 @@ export type ApplicationFormData = Omit<
 export default function ApplicationForm({
     event,
     address,
-    setApplicationFormData
+    sismoResponse,
 }: {
     event: Event,
     address: string,
-    setApplicationFormData: (data: ApplicationFormData) => void
+    sismoResponse: SismoConnectResponse,
 }) {
+    const navigate = useNavigate();
+    const [submitting, setSubmitting] = React.useState<boolean>(false);
+
     const contactInitialValues = event.contacts.reduce((acc: Object, contact: any) => {
         return {
             ...acc,
@@ -134,11 +142,11 @@ export default function ApplicationForm({
     const submit = async (values: any) => {
         const id = crypto.randomUUID() as string;
 
-        const signature = await signMessage({
+        const walletKeySignature = await signMessage({
             message: text.applicationSignatureRequest(id),
         });
         
-        const walletKey = cryptography.symmetric.generateKey(signature);
+        const walletKey = cryptography.symmetric.generateKey(walletKeySignature);
 
         const ephemeralKeyPair = cryptography.assymetric.generateKeyPair();
         const signatureKeyPair = cryptography.signature.generateKeyPair();
@@ -175,18 +183,39 @@ export default function ApplicationForm({
             shared, 
             encryptionKey
         );
-    
-        setApplicationFormData({
+
+        const data: Omit<EventApplicationData, 'signature'> = {
             id: id,
+            public_key: encodeBase64(ephemeralKeyPair.publicKey),
+            keystore: keystore,
+
             event_id: event.id,
             message: message,
             contacts: contacts,
-            public_key: encodeBase64(ephemeralKeyPair.publicKey),
-            keystore: keystore,
-            owner: address,
+            proof: encodeBase64(decodeUTF8(JSON.stringify(sismoResponse))),
+
             shared_key: shared_key,
+
+            timestamp: moment().toISOString(),
+            owner: address,
             version: 0,
+        };
+
+        const signature = await signTypedData({
+            domain,
+            message: {
+                ...data                
+            },
+            primaryType: 'Application',
+            types: applicationTypes
         });
+
+        const eventApplication = await client.service('event-applications').create({
+            ...data,
+            signature
+        });
+
+        navigate(`/applications/my`);
     }
 
     useEffect(() => {
@@ -207,25 +236,35 @@ export default function ApplicationForm({
     });
 
     return (
-        <form onSubmit={form.onSubmit(async (values) => submit(values))}>
+        <form onSubmit={form.onSubmit(async (values) => {
+            setSubmitting(true);
+
+            submit(values)
+                .catch(e => {
+                    setSubmitting(false);
+                })
+                .then(() => {
+                    setSubmitting(false);
+                })
+        })}>
             <Container>
                 <Grid>
                     { contactInputs }
 
                     <Grid.Col span={12}>
                         <Textarea
-                                withAsterisk
-                                minRows={5}
-                                label="Private message"
-                                description="This text will be end-to-end encrypted, meaning that only event's owner will be able to read it."
-                                {...form.getInputProps('message')}
-                            />
+                            withAsterisk
+                            minRows={5}
+                            label="Private message"
+                            description="This text is end-to-end encrypted, ensuring that only the host of this event can view it."
+                            {...form.getInputProps('message')}
+                        />
                     </Grid.Col>
 
                     <Grid.Col>
                         <Group position="center" mt="md">
-                            <Button type="submit">
-                                Encrypt message and continue
+                            <Button loading={submitting} type="submit">
+                                Submit application
                             </Button>
                         </Group>
                     </Grid.Col>

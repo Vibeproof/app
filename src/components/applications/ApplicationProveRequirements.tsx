@@ -54,7 +54,7 @@ export default function ApplicationProveRequirements({
                     <Group position="apart">
                         <div>
                             <Text fw={500}>
-                                You've choosen { choosenGroups.length } groups
+                                You've selected { choosenGroups.length } groups
                             </Text>
                         </div>
 

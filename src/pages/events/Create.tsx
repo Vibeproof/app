@@ -9,13 +9,11 @@ import { IconCircle, IconCircleCheck, IconFileDescription, IconFileText, IconShi
 import { EventFormData } from "../../components/events/EventForm";
 import EventSismoForm from "../../components/events/EventSismoForm";
 import { ClaimRequest } from "@sismo-core/sismo-connect-react";
-import EventSubmit from "../../components/events/EventSubmit";
 
 enum EventCreationSteps {
     CONNECT_WALLET,
     FILL_DETAILS,
     SET_REQUIREMENTS,
-    DONE,
 }
 
 
@@ -23,7 +21,6 @@ export default function EventsCreatePage() {
     const { address, isConnected } = useAccount();
     const [step, setStep] = useState<EventCreationSteps>(EventCreationSteps.CONNECT_WALLET);
     const [eventFormData, setEventFormData] =useState<EventFormData | null>(null);
-    const [claims, setClaims] = useState<ClaimRequest[]>([]);
 
     useEffect(() => {
         if (isConnected === false) {
@@ -38,11 +35,6 @@ export default function EventsCreatePage() {
         setStep(EventCreationSteps.SET_REQUIREMENTS);
     }
 
-    const setClaimsCallback = (claims: ClaimRequest[]) => {
-        setClaims(claims);
-        setStep(EventCreationSteps.DONE);
-    };
-
     const stepIcon = (step: EventCreationSteps) => {
         const size = 20;
 
@@ -53,8 +45,6 @@ export default function EventsCreatePage() {
                 return <IconFileText size={size} />;
             case EventCreationSteps.SET_REQUIREMENTS:
                 return <IconShield size={size} />;
-            case EventCreationSteps.DONE:
-                return <IconCircleCheck size={size} />;
             default:
                 return <IconCircle size={size} />;
         }
@@ -77,13 +67,8 @@ export default function EventsCreatePage() {
                         />
                         <Stepper.Step 
                             icon={stepIcon(EventCreationSteps.SET_REQUIREMENTS)}
-                            label="Step 4"
-                            description="Set up requirements"
-                        />
-                        <Stepper.Step 
-                            icon={stepIcon(EventCreationSteps.DONE)}
-                            label="Step 5"
-                            description="Submit event"
+                            label="Step 3"
+                            description="Set up groups"
                         />
                     </Stepper>
                 </Grid.Col>
@@ -104,17 +89,9 @@ export default function EventsCreatePage() {
 
                     {
                         step === EventCreationSteps.SET_REQUIREMENTS
-                        && <EventSismoForm 
-                            setClaims={setClaimsCallback}
-                        />
-                    }
-
-                    {
-                        step === EventCreationSteps.DONE
                         && eventFormData !== null
-                        && <EventSubmit 
+                        && <EventSismoForm 
                             eventFormData={eventFormData}
-                            claims={claims}
                             address={address as string}
                         />
                     }

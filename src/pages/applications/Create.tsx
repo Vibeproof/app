@@ -10,7 +10,6 @@ import { ClientApplication, createClient, Event, EventApplication } from '@vibep
 import ConnectWallet from "../../components/ConnectWallet";
 import ApplicationForm, { ApplicationFormData } from "../../components/applications/ApplicationForm";
 import ApplicationProveRequirements from "../../components/applications/ApplicationProveRequirements";
-import ApplicationSubmit from "../../components/applications/ApplicationSubmit";
 import { SismoConnectResponse } from "@sismo-core/sismo-connect-react";
 import Loading from "../../components/Loading";
 import { client } from "../../utils/client";
@@ -20,7 +19,6 @@ enum ApplicationCreationSteps {
     CONNECT_WALLET,
     PROVE_REQUIREMENTS,
     FILL_DETAILS,
-    DONE,
 }
 
 
@@ -67,8 +65,6 @@ export default function ApplicationsCreatePage() {
                 return <IconFileText size={size} />;
             case ApplicationCreationSteps.PROVE_REQUIREMENTS:
                 return <IconEyeCheck size={size} />;
-            case ApplicationCreationSteps.DONE:
-                return <IconCircleCheck size={size} />;
             default:
                 return <IconCircle size={size} />;
         }
@@ -85,11 +81,6 @@ export default function ApplicationsCreatePage() {
     const setSismoResponseCallback = (response: SismoConnectResponse) => {
         setSismoResponse(response);
         setStep(ApplicationCreationSteps.FILL_DETAILS);
-    }
-
-    const setApplicationFormDataCallback = (data: ApplicationFormData) => {
-        setApplicationFormData(data);
-        setStep(ApplicationCreationSteps.DONE);
     }
 
     if (event === null) {
@@ -117,11 +108,6 @@ export default function ApplicationsCreatePage() {
                             label="Step 3"
                             description="Fill the details"
                         />
-                        <Stepper.Step 
-                            icon={stepIcon(ApplicationCreationSteps.DONE)}
-                            label="Step 4"
-                            description="Submit application"
-                        />
                     </Stepper>
                 </Grid.Col>
 
@@ -144,16 +130,6 @@ export default function ApplicationsCreatePage() {
                         <ApplicationForm 
                             event={event}
                             address={address as string}
-                            setApplicationFormData={setApplicationFormDataCallback}
-                        />
-                    }
-
-                    {
-                        step === ApplicationCreationSteps.DONE &&
-                        <ApplicationSubmit 
-                            event={event}
-                            address={address as string}
-                            applicationFormData={applicationFormData as ApplicationFormData}
                             sismoResponse={sismoResponse as SismoConnectResponse}
                         />
                     }

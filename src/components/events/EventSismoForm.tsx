@@ -12,32 +12,50 @@ import {
     SismoConnectButton,
     SismoConnectResponse
 } from "@sismo-core/sismo-connect-react";
-import { useDebouncedState, useDebouncedValue } from "@mantine/hooks";
+import { useDebouncedState, useDebouncedValue, useWindowScroll } from "@mantine/hooks";
 import { renderDataURI } from "@codingwithmanny/blockies";
 import SismoGroupsTable from "../sismo/SismoGroupsTable";
 import { SismoGroupData, getSismoGroups } from "../../utils/sismo";
 import Loading from "../Loading";
+import { EventFormData } from "./EventForm";
+import { useNavigate } from "react-router-dom";
+import { EventData, domain, eventTypes } from "@vibeproof/api";
+import { client } from "../../utils/client";
+import moment from "moment";
+import { signTypedData } from "@wagmi/core";
 
 
 export default function EventSismoForm({
-    setClaims
+    eventFormData,
+    address,
 } : {
-    setClaims: (groups: ClaimRequest[]) => void
+    eventFormData: EventFormData,
+    address: string
 }) {
     const [sismoGroupsData, setSismoGroupsData] = useState<SismoGroupData[]>([]);
     const [choosenGroups, setChoosenGroups] = useState<SismoGroupData[]>([]);
-      
+    const [, scrollTo] = useWindowScroll();
+    const navigate = useNavigate()
+
+    const [submitting, setSubmitting] = React.useState<boolean>(false);
+
     useEffect(() => {
+        scrollTo({ y: 0 });
+
         const fetchGroups = async () => {
             const groups = await getSismoGroups();
 
-            setSismoGroupsData(groups);
+            const maintainedGroups = groups.filter((group: any) => {
+                return group.tags.includes('Maintained');
+            });        
+
+            setSismoGroupsData(maintainedGroups);
         }
 
         fetchGroups();
     }, []);
 
-    const submit = () => {
+    const submit = async () => {
         const claims = choosenGroups.map((group) => {
             return {
                 claimType: ClaimType.GTE,
@@ -50,7 +68,55 @@ export default function EventSismoForm({
             } as Required<ClaimRequest>;
         });
 
-        setClaims(claims);
+        const data: Omit<EventData, 'signature'> = {
+            id: eventFormData.id,
+            title: eventFormData.title,
+            description: eventFormData.description,
+            contacts: eventFormData.contacts,
+            application_template: eventFormData.application_template,
+            public_key: eventFormData.public_key,
+            signature_public_key: eventFormData.signature_public_key,
+            keystore: eventFormData.keystore,
+
+            tags: eventFormData.tags,
+            link: eventFormData.link,
+
+            note: eventFormData.note,
+            location: eventFormData.location,
+            capacity: eventFormData.capacity,
+            price: eventFormData.price,
+
+            sismo: {
+                auths: [],
+                // @ts-ignore
+                claims: claims,
+            },
+
+            registration_start: eventFormData.registration_start,
+            registration_end: eventFormData.registration_end,
+            start: eventFormData.start,
+            end: eventFormData.end,
+
+            timestamp: moment().toISOString(),
+            owner: address,
+            version: 0
+        };
+
+        const signature = await signTypedData({
+            domain,
+            message: {
+                ...data,
+            },
+            primaryType: 'Event',
+            types: eventTypes
+        });
+
+        const event = await client.service('events').create({
+            ...data,
+            signature
+        });
+        
+        navigate(`/events/${event.id}`);
     }
 
     if (sismoGroupsData.length === 0) {
@@ -67,16 +133,16 @@ export default function EventSismoForm({
                                 You've choosen { choosenGroups.length } groups
                             </Text>
                             <Text c='dimmed'>
-                                If not groups choosen - anyone can apply to your event. 
+                                You can gate your event to a specific group of people (example: group of all ENS owners). To attend your event, the guest will need to zk prove that they are part of the group.
+                            </Text>
+                            <Anchor href='https://docs.sismo.io/sismo-docs/data-groups/data-groups-and-creation' target="_blank">Learn more about groups in Sismo docs</Anchor>
+                            <Text c='dimmed'>
+                                If no groups are selected, anyone can register to your event.
                             </Text>
                             <Text c='dimmed'>
-                                If multisple groups choosen - applicant should proof that he is a member of one of them.
+                                If multiple groups are selected, the applicant must prove that they are part of at least one of them.
                             </Text>
                         </div>
-
-                        <Button size="xs" onClick={() => submit()}>
-                            Continue
-                        </Button>
                     </Group>
                 </Grid.Col>
 
@@ -88,6 +154,24 @@ export default function EventSismoForm({
                         choosenGroups={choosenGroups}
                         setChoosenGroups={setChoosenGroups}
                     />
+                </Grid.Col>
+
+                <Grid.Col>
+                    <Center>
+                        <Button loading={submitting} size="md" onClick={() => {
+                            setSubmitting(true);
+
+                            submit()
+                                .catch(e => {
+                                    setSubmitting(false);
+                                })
+                                .then(() => {
+                                    setSubmitting(false);
+                                })
+                        }}>
+                            Publish
+                        </Button>
+                    </Center>
                 </Grid.Col>
             </Grid>
         </Container>
