@@ -3,28 +3,22 @@ import React, { useEffect } from "react";
 
 import { Container, Grid, Group, Textarea, Button, TextInput } from "@mantine/core";
 import { isEmail, useForm } from "@mantine/form";
-import { Event, EventApplicationContacts, EventApplicationData, cryptography } from "@vibeproof/api";
+import { Event, EventApplicationContacts, EventApplicationData, Keystore, cryptography } from "@vibeproof/api";
 import { createWalletClient, custom } from 'viem'
 import { mainnet } from 'viem/chains'
 import { decodeBase64, encodeBase64 } from "tweetnacl-util";
 import { box } from 'tweetnacl';
-import { encrypt } from "../../utils/metamask";
 import { IconAt, IconBrandTelegram, IconMail, IconPhone, IconUser } from "@tabler/icons-react";
 import {phone} from 'phone';
 import { getContactInputIcon } from "../../utils/applications";
+import { signMessage } from '@wagmi/core'
+import * as text from './../../utils/text';
 
 
 export type ApplicationFormData = Omit<
     EventApplicationData,
     'proof' | 'signature' | 'timestamp'
 >
-
-interface Keystore {
-    privateKey: string;
-    encryptionKey: string;
-    signatureKey: string;
-    version: number;
-}
 
 
 export default function ApplicationForm({
@@ -138,35 +132,28 @@ export default function ApplicationForm({
     }, []);
 
     const submit = async (values: any) => {
-        const client = createWalletClient({
-            chain: mainnet,
-            // @ts-ignore
-            transport: custom(window.ethereum)
-        });
+        const id = crypto.randomUUID() as string;
 
-        console.log(values);
-
-        const wallet_public_key = await client.request({
-            // @ts-ignore
-            method: 'eth_getEncryptionPublicKey',
-            // @ts-ignore
-            params: [address],
+        const signature = await signMessage({
+            message: text.applicationSignatureRequest(id),
         });
+        
+        const walletKey = cryptography.symmetric.generateKey(signature);
 
         const ephemeralKeyPair = cryptography.assymetric.generateKeyPair();
         const signatureKeyPair = cryptography.signature.generateKeyPair();
         const encryptionKey = cryptography.symmetric.generateKey();
 
         const keystoreData: Keystore = {
-            privateKey: encodeBase64(ephemeralKeyPair.secretKey),
+            ephemeralSecretKey: encodeBase64(ephemeralKeyPair.secretKey),
             encryptionKey: encryptionKey,
-            signatureKey: encodeBase64(signatureKeyPair.secretKey),
+            signatureSecretKey: encodeBase64(signatureKeyPair.secretKey),
             version: 0,
         };
 
-        const keystore = encrypt(
+        const keystore = cryptography.symmetric.encrypt(
             JSON.stringify(keystoreData),
-            wallet_public_key as string
+            walletKey
         );
 
         const message = cryptography.symmetric.encrypt(
@@ -190,7 +177,7 @@ export default function ApplicationForm({
         );
     
         setApplicationFormData({
-            id: crypto.randomUUID() as string,
+            id: id,
             event_id: event.id,
             message: message,
             contacts: contacts,

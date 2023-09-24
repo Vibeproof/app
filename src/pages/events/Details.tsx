@@ -20,6 +20,8 @@ import { mainnet } from 'viem/chains'
 import { decodeBase64, encodeUTF8 } from "tweetnacl-util";
 import { box, sign, BoxKeyPair, SignKeyPair } from "tweetnacl";
 import { client } from '../../utils/client';
+import { signMessage } from '@wagmi/core'
+import * as text from './../../utils/text';
 
 
 const useStyles = createStyles((theme) => ({
@@ -206,23 +208,20 @@ export default function EventsDetailsPage() {
     };
 
     const decryptKeystore = async () => {
-        const client = createWalletClient({
-            chain: mainnet,
-            // @ts-ignore
-            transport: custom(window.ethereum)
+        if (application === null) return;
+
+        const signature = await signMessage({
+            message: text.applicationSignatureRequest(application.id),
         });
+        
+        const walletKey = cryptography.symmetric.generateKey(signature);
 
-        const keystore_decrypted = await client.request({
-            // @ts-ignore
-            method: 'eth_decrypt',
-            params: [
-                // @ts-ignore
-                encodeUTF8(decodeBase64(application.keystore)),
-                address as string
-            ],
-        }).then((result: any) => JSON.parse(result));
-
-        setKeystore(keystore_decrypted);
+        const keystore_decrypted = cryptography.symmetric.decrypt(
+            application.keystore,
+            walletKey
+        );
+  
+        setKeystore(JSON.parse(keystore_decrypted));
     };
 
     const decryptApplicationContacts = (application: EventApplication, keystore: Keystore) => {
@@ -246,7 +245,9 @@ export default function EventsDetailsPage() {
     const decryptEventNote = (event: Event, keystore: Keystore) => {
         if (application === null) return '';
 
-        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.privateKey));
+        console.log(keystore);
+
+        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.ephemeralSecretKey));
 
         const shared = box.before(
             decodeBase64(event.public_key),

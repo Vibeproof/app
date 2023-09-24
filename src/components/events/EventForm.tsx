@@ -10,14 +10,15 @@ import React, { useEffect } from "react";
 import { InternalRpcError, createWalletClient, custom } from 'viem'
 import { mainnet } from 'viem/chains'
 import { isValidUrl } from "../../utils/validators";
-import { EventApplicationContacts, EventData, cryptography } from '@vibeproof/api';
+import { EventApplicationContacts, EventData, Keystore, cryptography } from '@vibeproof/api';
+import { signMessage } from '@wagmi/core'
+import * as text from './../../utils/text';
+
 
 import {
     encodeBase64,
     decodeBase64
 } from "tweetnacl-util";
-
-import { encrypt } from "../../utils/metamask";
   
 
 const defaultTags = [
@@ -28,15 +29,9 @@ const defaultTags = [
     'Hacker house',
     'Workshop',
     'Sport',
+    'Drinks'
 ];
 
-
-interface Keystore {
-    privateKey: string;
-    encryptionKey: string;
-    signatureKey: string;
-    version: number;
-}
 
 export type EventFormData = Omit<
     EventData,
@@ -154,33 +149,28 @@ export default function EventForm({
     }, [form.values]);
 
     const submit = async (values: any) => {
-        const client = createWalletClient({
-            chain: mainnet,
-            // @ts-ignore
-            transport: custom(window.ethereum)
-        });
+        const id = crypto.randomUUID() as string;
 
-        const wallet_public_key = await client.request({
-            // @ts-ignore
-            method: 'eth_getEncryptionPublicKey',
-            // @ts-ignore
-            params: [address],
+        const signature = await signMessage({
+            message: text.eventSignatureRequest(id),
         });
-
+        
+        const walletKey = cryptography.symmetric.generateKey(signature);
+                    
         const ephemeralKeyPair = cryptography.assymetric.generateKeyPair();
         const signatureKeyPair = cryptography.signature.generateKeyPair();
         const encryptionKey = cryptography.symmetric.generateKey();
 
         const keystoreData: Keystore = {
-            privateKey: encodeBase64(ephemeralKeyPair.secretKey),
+            ephemeralSecretKey: encodeBase64(ephemeralKeyPair.secretKey),
             encryptionKey: encryptionKey,
-            signatureKey: encodeBase64(signatureKeyPair.secretKey),
+            signatureSecretKey: encodeBase64(signatureKeyPair.secretKey),
             version: 0,
         };
 
-        const keystore = encrypt(
+        const keystore = cryptography.symmetric.encrypt(
             JSON.stringify(keystoreData),
-            wallet_public_key as string
+            walletKey
         );
 
         const note = cryptography.symmetric.encrypt(
@@ -192,7 +182,7 @@ export default function EventForm({
         const registration_end = moment(values.start).subtract(1, 'minute');
     
         setEventFormData({
-            id: crypto.randomUUID() as string,
+            id: id,
             title: values.title,
             link: values.link,
             contacts: values.contacts,

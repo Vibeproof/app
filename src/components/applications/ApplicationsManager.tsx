@@ -21,6 +21,8 @@ import Loading from "../Loading";
 import Empty from "../Empty";
 import { box, sign, BoxKeyPair, SignKeyPair } from "tweetnacl";
 import { client } from "../../utils/client";
+import { signMessage } from '@wagmi/core'
+import * as text from './../../utils/text';
 
 
 interface ApplicationDecrypted {
@@ -57,23 +59,18 @@ export default function ApplicationsManager({
     }, []);
     
     const decryptKeystore = async () => {
-        const client = createWalletClient({
-            chain: mainnet,
-            // @ts-ignore
-            transport: custom(window.ethereum)
+        const signature = await signMessage({
+            message: text.eventSignatureRequest(event.id),
         });
+        
+        const walletKey = cryptography.symmetric.generateKey(signature);
 
-        const keystore_decrypted = await client.request({
-            // @ts-ignore
-            method: 'eth_decrypt',
-            params: [
-                // @ts-ignore
-                encodeUTF8(decodeBase64(event.keystore)),
-                address as string
-            ],
-        }).then((result: any) => JSON.parse(result));
-
-        setKeystore(keystore_decrypted);
+        const keystore_decrypted = cryptography.symmetric.decrypt(
+            event.keystore,
+            walletKey
+        );
+  
+        setKeystore(JSON.parse(keystore_decrypted));
     };
 
     const applicationCards = applications?.map((application: EventApplication, i) => {
@@ -125,7 +122,7 @@ export default function ApplicationsManager({
         application: EventApplication,
         keystore: Keystore
     ) => {
-        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.privateKey));
+        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.ephemeralSecretKey));
 
         const shared = box.before(
             decodeBase64(application.public_key),
@@ -149,7 +146,7 @@ export default function ApplicationsManager({
         application: EventApplication,
         keystore: Keystore
     ) => {
-        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.privateKey));
+        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.ephemeralSecretKey));
 
         const shared = box.before(
             decodeBase64(application.public_key),
@@ -184,7 +181,7 @@ export default function ApplicationsManager({
         application: EventApplication,
         keystore: Keystore
     ) => {
-        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.privateKey));
+        const ephemeralKeyPair = box.keyPair.fromSecretKey(decodeBase64(keystore.ephemeralSecretKey));
 
         const shared = box.before(
             decodeBase64(application.public_key),
@@ -205,7 +202,7 @@ export default function ApplicationsManager({
             version: 0,
         };
 
-        const signatureKeyPair = sign.keyPair.fromSecretKey(decodeBase64(keystore.signatureKey));
+        const signatureKeyPair = sign.keyPair.fromSecretKey(decodeBase64(keystore.signatureSecretKey));
 
         const signature = cryptography.signature.sign(
             JSON.stringify(data),
