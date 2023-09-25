@@ -30,14 +30,14 @@ export default function EventsSearchPage() {
     }
 
     const fetchEvents = async () => {
-        console.log('loading');
-        console.log(events === null ? 0 : events.length);
         const events_ = await client.service('events').find({
             query: {
+                banned: false,
+                public: true,
                 $skip: events === null ? 0 : events.length,
-                $limit: 15,
+                $limit: 9,
                 $sort: {
-                    'timestamp': -1
+                    'timestamp': -1,
                 }
             }
         });
@@ -69,19 +69,19 @@ export default function EventsSearchPage() {
     });
 
     return (
-        <Container size='lg' pt={50} id="events">
+        <Container size='lg' pt={50}>
             <InfiniteScroll
                 dataLength={events.length}
                 next={() => fetchEvents()}
                 hasMore={events.length < totalEvents}
                 loader={<Loading/>}
                 scrollThreshold={0.9}
-                // scrollableTarget="events"
+                style={{ height: '100%', overflow: 'hidden' }}
             >
                 <Grid>
                     { eventComponents }
                 </Grid>
             </InfiniteScroll>
         </Container>
-    )
+    );
 }
