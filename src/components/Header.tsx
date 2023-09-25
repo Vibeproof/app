@@ -1,9 +1,10 @@
-import { createStyles, Header as HeaderMantine, Menu, Group, Center, Burger, Container, rem, Button } from '@mantine/core';
+import { createStyles, Header as HeaderMantine, Menu, Text, Group, Center, Burger, Container, rem, Button, Image } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconChevronDown } from '@tabler/icons-react';
 import { MantineLogo } from '@mantine/ds';
 import { ConnectKitButton } from 'connectkit';
 import { Link } from 'react-router-dom';
+import Logo from './Logo';
 
 
 const HEADER_HEIGHT = rem(60);
@@ -90,7 +91,11 @@ export default function Header({ links }: HeaderSearchProps) {
             size="sm"
             color="#fff"
           />
-          <MantineLogo size={28} inverted />
+
+          <Logo />
+        </Group>
+
+        <Group>
         </Group>
 
         <Group spacing={5} className={classes.links}>
