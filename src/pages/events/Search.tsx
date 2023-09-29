@@ -78,7 +78,7 @@ export default function EventsSearchPage() {
                 scrollThreshold={0.9}
                 style={{ height: '100%', overflow: 'hidden' }}
             >
-                <Grid>
+                <Grid align="stretch">
                     { eventComponents }
                 </Grid>
             </InfiniteScroll>

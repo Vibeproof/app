@@ -16,13 +16,14 @@ import EventsDetailsPage from './events/Details';
 import ApplicationsCreatePage from './applications/Create';
 import ApplicationsMyPage from './applications/My';
 import EventsMyPage from './events/My';
+import EventsEditPage from './events/Edit';
 
 
 
 function App() {
     const header = <Header links={[
         { link: '/', label: 'Home' },
-        { link: '/applications/my', label: 'My tickets' },
+        { link: '/applications/my', label: 'My invites' },
         { link: '/events/my', label: 'My events' },
         { link: '/events/create', label: 'Create an event' },
     ]}/>;
@@ -41,6 +42,7 @@ function App() {
                     <Route path='/events/create' element={ <EventsCreatePage /> } />
                     <Route path='/events/:id' element={ <EventsDetailsPage /> }/>
                     <Route path='/events/my' element={ <EventsMyPage /> } />
+                    <Route path='/events/edit/:id' element={ <EventsEditPage /> }/>
 
                     <Route path='/applications/create/:id' element={ <ApplicationsCreatePage /> }/>
                     <Route path='/applications/my' element={ <ApplicationsMyPage /> } />

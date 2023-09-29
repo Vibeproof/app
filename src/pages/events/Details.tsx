@@ -110,10 +110,6 @@ export default function EventsDetailsPage() {
 
     const { classes } = useStyles();
 
-    const openTicket = async () => {
-        console.log('opening')
-    }
-
     const applyButton = () => {
         if (applicationStatus === null) return null;
 
@@ -305,7 +301,7 @@ export default function EventsDetailsPage() {
             <Container size='lg'>
                 <Grid>
                     <Grid.Col span={12} mb='sm'>
-                        <Image height={400} src={event.image} withPlaceholder/>
+                        <Image height={400} src={event.image.src} withPlaceholder/>
                     </Grid.Col>
 
                     <Grid.Col span={12}>

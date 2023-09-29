@@ -3,7 +3,7 @@ import { useAccount } from "wagmi";
 
 import rest from '@feathersjs/rest-client';
 import { createClient, Event, EventApplication, ResponseType } from '@vibeproof/api';
-import { Anchor, Badge, Container, Table } from "@mantine/core";
+import { Anchor, Badge, Button, Container, Table } from "@mantine/core";
 import ConnectWallet from "../../components/ConnectWallet";
 import moment from "moment";
 import { HUMAN_DATE_TIME_FORMAT } from "../../utils";
@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 import { client } from "../../utils/client";
 import Loading from "../../components/Loading";
 import Empty from "../../components/Empty";
-import { IconCalendarCancel } from "@tabler/icons-react";
+import { IconCalendarCancel, IconEdit } from "@tabler/icons-react";
 
 
 export default function EventsMyPage() {
@@ -56,7 +56,11 @@ export default function EventsMyPage() {
                 <td>{ <Anchor component={Link} to={`/events/${event.id}`}>{ event.title }</Anchor> }</td>
                 <td>{ moment(event.timestamp).format(HUMAN_DATE_TIME_FORMAT) }</td>
                 <td>{ event.applications }</td>
-                <td>{ `${event.cid.slice(0, 20)}...`  }</td>
+                <td>
+                    <Link to={`/events/edit/${event.id}`}>
+                        <IconEdit size={18} />
+                    </Link>
+                </td>
             </tr>
         )
     });
@@ -69,7 +73,7 @@ export default function EventsMyPage() {
                         <th>Event</th>
                         <th>Created at</th>
                         <th>Applications</th>
-                        <th>IPFS</th>
+                        <th>Edit</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -188,6 +188,7 @@ export default function EventForm({
     
         setEventFormData({
             id: id,
+            seed: 0,
             title: values.title,
             link: values.link,
             contacts: values.contacts,
@@ -202,6 +203,8 @@ export default function EventForm({
             start: moment(values.start).toISOString(),
             end: moment(values.end).toISOString(),
             price: 0,
+            public: true,
+            paused: false,
             tags: values.tags,
             note: note,
             keystore: keystore,

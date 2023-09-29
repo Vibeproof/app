@@ -59,7 +59,7 @@ export default function EventCard({
         <Card shadow="sm" radius="md" withBorder className={classes.card}>
             <Card.Section>
                 <Image
-                    src={event.image}
+                    src={event.image.src}
                     height={160}
                     alt="Norway"
                 />

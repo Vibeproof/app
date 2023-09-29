@@ -70,6 +70,9 @@ export default function EventSismoForm({
 
         const data: Omit<EventData, 'signature'> = {
             id: eventFormData.id,
+            seed: eventFormData.seed,
+            public: eventFormData.public,
+            paused: eventFormData.paused,
             title: eventFormData.title,
             description: eventFormData.description,
             contacts: eventFormData.contacts,

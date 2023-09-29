@@ -5187,6 +5187,11 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.17.15.tgz#31301a273b9ca7d568fe6d1c35ae52e0fb3f8d6a"
   integrity sha512-2yrWpBk32tvV/JAd3HNHWuZn/VDN1P+72hWirHnvsvTGSqbANi+kSeuQR9yAHnbvaBvHDsoTdXV0Fe+iRtHLKA==
 
+"@types/object-hash@^3.0.4":
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/@types/object-hash/-/object-hash-3.0.4.tgz#31865a3d69de1042fec2ede56fd8cf0bb4e01641"
+  integrity sha512-w4fEy2suq1bepUxHoJRCBHJz0vS5DPAYpSbcgNwOahljxwyJsiKmi8qyes2/TJc+4Avd7fsgP+ZgUuXZjPvdug==
+
 "@types/parse-json@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@types/parse-json/-/parse-json-4.0.0.tgz#2f8bb441434d163b35fb8ffdccd7138927ffb8c0"
@@ -5484,10 +5489,10 @@
     "@typescript-eslint/types" "5.62.0"
     eslint-visitor-keys "^3.3.0"
 
-"@vibeproof/api@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@vibeproof/api/-/api-0.1.6.tgz#4136082e9095c82bd23351d7e7838280416c66b7"
-  integrity sha512-6g78U6eLZQodlc34iP5PFinrwtB9Lwb5JQYDnP+NdRPvBxY/meRQh0SgfJIoJii4j7DgmXEa4O2u3J/hIjrTiA==
+"@vibeproof/api@^0.1.8":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@vibeproof/api/-/api-0.1.8.tgz#fc14f8162ffb877016a703bb36f65e9645613ee5"
+  integrity sha512-IpfKAFKYfGnJlEc9at83gwLG68pY/UwBOf3e1Sji61MyXOqmALEqJEGXz8gDk32LXpiRKmVytCpodp8Qgkme4w==
   dependencies:
     "@aws-sdk/client-s3" "^3.413.0"
     "@feathersjs/adapter-commons" "^5.0.8"
