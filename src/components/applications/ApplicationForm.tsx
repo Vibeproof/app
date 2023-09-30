@@ -45,6 +45,8 @@ export default function ApplicationForm({
         }
     }, {});
 
+    console.log(contactInitialValues);
+
     const contactValidators = event.contacts.reduce((acc: Object, contact: any) => {
         if (
             contact === EventApplicationContacts.DISCORD ||
@@ -56,6 +58,7 @@ export default function ApplicationForm({
             return {
                 ...acc,
                 [contact]: (value: string) => {
+                    console.log(value, contact);
                     if (value.trim().length === 0) {
                         return 'Username is required';
                     } else {
@@ -121,25 +124,27 @@ export default function ApplicationForm({
         }
     });
 
-    useEffect(() => {
-        const storedValue = window.localStorage.getItem('event-application-form');
+    // useEffect(() => {
+    //     const storedValue = window.localStorage.getItem('event-application-form');
 
-        if (storedValue !== null) {
-            const values = JSON.parse(storedValue);
+    //     if (storedValue !== null) {
+    //         const values = JSON.parse(storedValue);
+    //         console.log(values);
 
-            if (values.message.trim().length === 0) {
-                return;
-            }
+    //         if (values.message.trim().length === 0) {
+    //             return;
+    //         }
 
-            try {
-                form.setValues(values);
-            } catch (e) {
-                console.log('Failed to parse stored value');
-            }
-        }
-    }, []);
+    //         try {
+    //             form.setValues(values);
+    //         } catch (e) {
+    //             console.log('Failed to parse stored value');
+    //         }
+    //     }
+    // }, []);
 
     const submit = async (values: any) => {
+        console.log(values);
         const id = crypto.randomUUID() as string;
 
         const walletKeySignature = await signMessage({
@@ -218,13 +223,13 @@ export default function ApplicationForm({
         navigate(`/applications/my`);
     }
 
-    useEffect(() => {
-        window.localStorage.setItem('event-application-form', JSON.stringify(form.values));
-    }, [form.values]);
+    // useEffect(() => {
+    //     window.localStorage.setItem('event-application-form', JSON.stringify(form.values));
+    // }, [form.values]);
 
     const contactInputs = event.contacts.map((contact, i) => {
         return (
-            <Grid.Col key={i}>
+            <Grid.Col key={i} span={6}>
                 <TextInput
                     withAsterisk
                     label={contact}

@@ -3,19 +3,20 @@ import { useAccount } from "wagmi";
 
 import rest from '@feathersjs/rest-client';
 import { createClient, Event, EventApplication, ResponseType } from '@vibeproof/api';
-import { Anchor, Badge, Button, Container, Table } from "@mantine/core";
+import { ActionIcon, Anchor, Badge, Button, Container, rem, Table } from "@mantine/core";
 import ConnectWallet from "../../components/ConnectWallet";
 import moment from "moment";
 import { HUMAN_DATE_TIME_FORMAT } from "../../utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { client } from "../../utils/client";
 import Loading from "../../components/Loading";
 import Empty from "../../components/Empty";
-import { IconCalendarCancel, IconEdit } from "@tabler/icons-react";
+import { IconCalendarCancel, IconEdit, IconPencil } from "@tabler/icons-react";
 
 
 export default function EventsMyPage() {
     const { address, isConnected } = useAccount();
+    const navigate = useNavigate();
 
     const [events, setEvents] = React.useState<Event[] | null>(null);
 
@@ -57,9 +58,11 @@ export default function EventsMyPage() {
                 <td>{ moment(event.timestamp).format(HUMAN_DATE_TIME_FORMAT) }</td>
                 <td>{ event.applications }</td>
                 <td>
-                    <Link to={`/events/edit/${event.id}`}>
-                        <IconEdit size={18} />
-                    </Link>
+                    <ActionIcon variant="subtle" color="gray" onClick={(e) => {
+                        navigate(`/events/edit/${event.id}`);
+                    }}>
+                        <IconPencil style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+                    </ActionIcon>
                 </td>
             </tr>
         )
@@ -67,13 +70,13 @@ export default function EventsMyPage() {
 
     return (
         <Container size='lg' pt={50}>
-            <Table highlightOnHover>
+            <Table>
                 <thead>
                     <tr>
                         <th>Event</th>
                         <th>Created at</th>
                         <th>Applications</th>
-                        <th>Edit</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>

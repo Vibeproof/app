@@ -46,7 +46,7 @@ export default function ApplicationsMyPage() {
                 <td>{ <Anchor component={Link} to={`/events/${eventApplication.event.id}`}>{ eventApplication.event.title }</Anchor> }</td>
                 <td>{ getApplicationBadge(eventApplication) }</td>
                 <td>{ moment(eventApplication.timestamp).fromNow() }</td>
-                <td>{ `${eventApplication.cid.slice(0, 20)}...`  }</td>
+                {/* <td>{ `${eventApplication.cid.slice(0, 20)}...`  }</td> */}
             </tr>
         )
     });
@@ -74,7 +74,7 @@ export default function ApplicationsMyPage() {
                         <th>Event</th>
                         <th>Status</th>
                         <th>Submission</th>
-                        <th>IPFS</th>
+                        {/* <th>IPFS</th> */}
                     </tr>
                 </thead>
                 <tbody>

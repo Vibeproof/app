@@ -48,7 +48,8 @@ export default function ApplicationsManager({
                 data: applications
             } = await client.service('event-applications').find({
                 query: {
-                    event_id: event.id
+                    event_id: event.id,
+                    $limit: 1000,
                 }
             });
 

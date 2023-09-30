@@ -300,8 +300,8 @@ export default function EventsDetailsPage() {
 
             <Container size='lg'>
                 <Grid>
-                    <Grid.Col span={12} mb='sm'>
-                        <Image height={400} src={event.image.src} withPlaceholder/>
+                    <Grid.Col span={12} mb='sm' mt='sm'>
+                        <Image height={400} src={event.image.src} radius='md' withPlaceholder/>
                     </Grid.Col>
 
                     <Grid.Col span={12}>
@@ -313,18 +313,6 @@ export default function EventsDetailsPage() {
                                 
                                 <Tabs.Tab value="requirements" icon={<IconShield size="0.8rem" />}>
                                     Claims
-                                </Tabs.Tab>
-
-                                <Tabs.Tab 
-                                    value="messages"
-                                    icon={<IconMessageCircle size="0.8rem" />}
-                                    rightSection={
-                                        <Badge w={16} h={16} sx={{ pointerEvents: 'none' }} variant="filled" size="xs" p={0}>
-                                            { event.applications }
-                                        </Badge>
-                                    }
-                                >
-                                    Applications
                                 </Tabs.Tab>
                             </Tabs.List>
 
@@ -374,14 +362,6 @@ export default function EventsDetailsPage() {
 
                                             { applyButton() }
                                         </Card>
-                                    </Grid.Col>
-                                </Grid>
-                            </Tabs.Panel>
-
-                            <Tabs.Panel value="messages" pt="xs">
-                                <Grid>
-                                    <Grid.Col span={12}>
-                                        <ApplicationsManager event={event}/>
                                     </Grid.Col>
                                 </Grid>
                             </Tabs.Panel>
