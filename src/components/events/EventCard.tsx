@@ -3,11 +3,15 @@ import React from "react";
 import { Event } from '@vibeproof/api';
 import { ActionIcon, Badge, Button, Card, Group, Image, Text, createStyles, rem } from "@mantine/core";
 import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
+import { Link } from "react-router-dom";
 
 
 const useStyles = createStyles((theme) => ({
     card: {
         backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
+        ":hover": {
+            cursor: 'pointer'
+        }
     },
 
     section: {
@@ -56,7 +60,7 @@ export default function EventCard({
     ));
     
     return (
-        <Card shadow="sm" radius="md" withBorder className={classes.card}>
+        <Card shadow="sm" radius="md" withBorder className={classes.card} onClick={() => onClick(event)}>
             <Card.Section>
                 <Image
                     src={event.image.src}
@@ -86,9 +90,9 @@ export default function EventCard({
                     Show details
                 </Button>
     
-                <ActionIcon variant="default" radius="md" size={36}>
+                {/* <ActionIcon variant="default" radius="md" size={36}>
                     <IconHeart size="1.1rem" color="red" stroke={1.5} />
-                </ActionIcon>
+                </ActionIcon> */}
             </Group>
         </Card>
     );
