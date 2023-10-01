@@ -1,46 +1,35 @@
-# Getting Started with Create React App
+# VibeProof
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**VibeProof** is a web3 event management app, tailored to create personalized experiences for your community.
 
-## Available Scripts
+👉 *Beta version of VibeProof is live!*  
 
-In the project directory, you can run:
+![Cover image](https://snaphost.nyc3.cdn.digitaloceanspaces.com/public/cover/0220278b-5688-40cd-afb1-d224e3f046fd-7220e02c-ea63-4dc7-b0b4-ba50f1d1ac0a.png)
 
-### `npm start`
+### Flow
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+1. Create your event page (the cover image can be AI generated)  
+2. Gate the event applications to specific group(s) of users 
+3. Request a zk proof of group membership from the attendees
+4. Accept the applications and share your event details (physical address/link)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### How it works
 
-### `npm run build`
+* 🌐 IPFS: All events and related data are stored on IPFS (inspired by Snapshot), ensuring transparency and durability. 
+* 🎭 [Sismo Connect](https://www.sismo.io/) is used as an SSO, enabling requests and verification of zk proofs from users.  
+* 🔐 End-to-end encryption for all private messages and applications, viewable only by event organizers.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Examples 
 
-### `npm run eject`
+- Private meetup for specific NFT holders. Wallets of the attendees remain private; event details are shared only with accepted participants. 
+- Community call for DAO participants and Snapshot voters.
+- Youtube premier gated to your lens subscribers.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Connect 
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+Any feedback is appreciated. You can reach out to me on Telegram [@sergey_pavlovdog](https://t.me/sergey_pavlovdog) or Twitter [@potekhin_sergey](https://twitter.com/potekhin_sergey).

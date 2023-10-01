@@ -1,4 +1,5 @@
 import { Center, Container, Text, Title } from "@mantine/core";
+import { IconWallet } from "@tabler/icons-react";
 import React from "react";
 
 
@@ -6,9 +7,7 @@ export default function ConnectWallet() {
     return (
         <Center h={500}>
             <Container>
-                <Title>Connect wallet with ENS address</Title>
-                <Text>To create an event you should connect wallet with ENS address</Text>
-                <Text>If you don't have one, you can purchase it in ENS app</Text>
+                <Title>Connect your wallet</Title>
                 {/* <Text>
                     For event creation you need to use wallet with ENS address. 
                     If you don't have one, you can purchase it on <a href="https://app.ens.domains/" target="blank">ENS app</a>.
