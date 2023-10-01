@@ -92,11 +92,14 @@ export default function ApplicationsManager({
                         { getApplicationBadge(application) }
                     </Group>
 
-                    <Button mt='lg' fullWidth onClick={async () => {
+                    <Button mt='lg' fullWidth onClick={() => {
                         if (keystore === null) {
                             if (address === event.owner) {
-                                await decryptKeystore();
-                                await setReviewedApplication(application);
+                                decryptKeystore().then(async () => {
+                                    await setReviewedApplication(application);
+                                }).catch((e) => {
+                                    console.log(e);
+                                });
                             } else if (isConnected === false) {
                                 notifications.show({
                                     title: 'Connect wallet',

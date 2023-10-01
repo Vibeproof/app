@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Event } from "@vibeproof/api";
 import { Card, CloseButton, Container, Divider, Grid, Group, Title, Text, Button, Switch, createStyles, rem, Center } from "@mantine/core";
 import axios from "axios";
-import { SismoConnectButton, SismoConnectConfig, SismoConnectResponse } from "@sismo-core/sismo-connect-react";
+import { AuthType, SismoConnectButton, SismoConnectConfig, SismoConnectResponse } from "@sismo-core/sismo-connect-react";
 import { SismoGroupData, getSismoGroups } from "../../utils/sismo";
 import Loading from "../Loading";
 import SismoGroupsTable from "../sismo/SismoGroupsTable";
@@ -64,6 +64,9 @@ export default function ApplicationProveRequirements({
                         <SismoConnectButton
                             config={sismoConfig}
                             disabled={choosenGroups.length === 0}
+                            auths={[
+                                { authType: AuthType.VAULT }
+                            ]}
                             // @ts-ignore
                             claims={claims}
                             text="Prove"

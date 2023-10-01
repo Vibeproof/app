@@ -130,10 +130,10 @@ export default function EventsEditPage() {
                                 Applications
                             </Tabs.Tab>
 
-                            <Tabs.Tab value="general" icon={<IconPencil size="0.8rem" />}>
+                            {/* <Tabs.Tab value="general" icon={<IconPencil size="0.8rem" />}>
                                 General
-                            </Tabs.Tab>
-                            
+                            </Tabs.Tab> */}
+
                             <Tabs.Tab value="settings" icon={<IconSettings size="0.8rem" />}>
                                 Settings
                             </Tabs.Tab>

@@ -369,6 +369,14 @@ export default function EventsDetailsPage() {
                             <Tabs.Panel value="requirements" pt="xs">
                                 <Grid>
                                     <Grid.Col span={12}>
+                                        <div>
+                                            <Text c='dimmed'>
+                                                This event is gated to a specific group of people (example: group of all ENS owners). To attend the event, the guest will need to zk prove that they are part of the group.
+                                            </Text>
+                                            <Anchor href='https://docs.sismo.io/sismo-docs/data-groups/data-groups-and-creation' target="_blank">Learn more about groups in Sismo docs</Anchor>
+                                        </div>
+                                    </Grid.Col>
+                                    <Grid.Col span={12}>
                                         <EventRequirements event={event} />
                                     </Grid.Col>
                                 </Grid>

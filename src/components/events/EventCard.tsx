@@ -89,10 +89,6 @@ export default function EventCard({
                 <Button className={classes.button} radius="md" style={{ flex: 1 }} onClick={() => onClick(event)}>
                     Show details
                 </Button>
-    
-                {/* <ActionIcon variant="default" radius="md" size={36}>
-                    <IconHeart size="1.1rem" color="red" stroke={1.5} />
-                </ActionIcon> */}
             </Group>
         </Card>
     );

@@ -130,23 +130,21 @@ export default function EventSismoForm({
         <Container>
             <Grid>
                 <Grid.Col>
-                    <Group position="apart">
-                        <div>
-                            <Text fw={500}>
-                                You've choosen { choosenGroups.length } groups
-                            </Text>
-                            <Text c='dimmed'>
-                                You can gate your event to a specific group of people (example: group of all ENS owners). To attend your event, the guest will need to zk prove that they are part of the group.
-                            </Text>
-                            <Anchor href='https://docs.sismo.io/sismo-docs/data-groups/data-groups-and-creation' target="_blank">Learn more about groups in Sismo docs</Anchor>
-                            <Text c='dimmed'>
-                                If no groups are selected, anyone can register to your event.
-                            </Text>
-                            <Text c='dimmed'>
-                                If multiple groups are selected, the applicant must prove that they are part of at least one of them.
-                            </Text>
-                        </div>
-                    </Group>
+                    <div>
+                        <Text fw={500}>
+                            You've choosen { choosenGroups.length } groups
+                        </Text>
+                        <Text c='dimmed'>
+                            You can gate your event to a specific group of people (example: group of all ENS owners). To attend your event, the guest will need to zk prove that they are part of the group.
+                        </Text>
+                        <Anchor href='https://docs.sismo.io/sismo-docs/data-groups/data-groups-and-creation' target="_blank">Learn more about groups in Sismo docs</Anchor>
+                        <Text c='dimmed'>
+                            If no groups are selected, anyone can register to your event.
+                        </Text>
+                        <Text c='dimmed'>
+                            If multiple groups are selected, the applicant must prove that they are part of at least one of them.
+                        </Text>
+                    </div>
                 </Grid.Col>
 
                 <Grid.Col>

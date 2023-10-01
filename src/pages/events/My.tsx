@@ -58,11 +58,11 @@ export default function EventsMyPage() {
                 <td>{ moment(event.timestamp).format(HUMAN_DATE_TIME_FORMAT) }</td>
                 <td>{ event.applications }</td>
                 <td>
-                    <ActionIcon variant="subtle" color="gray" onClick={(e) => {
+                    <Button variant="default" rightIcon={<IconPencil size={15}/>} onClick={(e) => {
                         navigate(`/events/edit/${event.id}`);
                     }}>
-                        <IconPencil style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                    </ActionIcon>
+                        Manage
+                    </Button>
                 </td>
             </tr>
         )
