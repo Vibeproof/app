@@ -50,6 +50,10 @@ export default function EventSismoForm({
             });        
 
             setSismoGroupsData(maintainedGroups);
+
+            const gitCoinGroup = maintainedGroups.find((group) => group.id == '0x1cde61966decb8600dfd0749bd371f12');
+
+            setChoosenGroups([gitCoinGroup]);
         }
 
         fetchGroups();
@@ -143,6 +147,11 @@ export default function EventSismoForm({
                         </Text>
                         <Text c='dimmed'>
                             If multiple groups are selected, the applicant must prove that they are part of at least one of them.
+                        </Text>
+
+                        <br/>
+                        <Text c='dimmed'>
+                            By default, the Gitcoin passport holders group is selected. Read mode about Gitcoin passport <Anchor href="https://docs.passport.gitcoin.co/" target="_blank">here</Anchor>.
                         </Text>
                     </div>
                 </Grid.Col>
