@@ -213,10 +213,21 @@ export default function ApplicationsManager({
             signatureKeyPair.secretKey
         );
 
-        await client.service('event-application-responses').create({
+        const application_response = await client.service('event-application-responses').create({
             ...data,
             signature
         });
+
+        setApplications(applications.map((a) => {
+            if (a.id !== application.id) return a;
+
+            return {
+                ...a,
+                response: application_response
+            }
+        }));
+
+        setReviewedApplication(null);
     }
 
     return (
