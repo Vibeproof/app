@@ -8,8 +8,8 @@
 
 ### Flow
 
-1. Create your event page (the cover image can be AI generated)  
-2. Gate the event applications to specific group(s) of users 
+1. Create your event page (the cover image is AI generated)  
+2. Gate the event applications to specific group(s) of users
 3. Request a zk proof of group membership from the attendees
 4. Accept the applications and share your event details (physical address/link)
 
@@ -22,14 +22,18 @@
 * 🔐 End-to-end encryption for all private messages and applications, viewable only by event organizers.
 
 
-
 ### Examples 
 
 - Private meetup for specific NFT holders. Wallets of the attendees remain private; event details are shared only with accepted participants. 
 - Community call for DAO participants and Snapshot voters.
 - Youtube premier gated to your lens subscribers.
 
+### Cryptography
+
+Vibeproof offers efficient end-to-end encryption, ensuring that only the communication between the event owner and the event applicant is secure. To achieve this, users may be requested to sign messages with their crypto wallet (Metamask / Wallet Connect / etc.).
+
+![crypto](./public/Crypto.png)
 
 ### Connect 
 
-Any feedback is appreciated. You can reach out to me on Telegram [@sergey_pavlovdog](https://t.me/sergey_pavlovdog) or Twitter [@potekhin_sergey](https://twitter.com/potekhin_sergey).
+Any feedback is appreciated. You can reach out to me on Telegram [@p0tekhin](https://t.me/p0tekhin) or Twitter [@potekhin_sergey](https://twitter.com/potekhin_sergey).
