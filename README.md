@@ -30,7 +30,7 @@
 
 ### Cryptography
 
-Vibeproof offers efficient end-to-end encryption, ensuring that only the communication between the event owner and the event applicant is secure. To achieve this, users may be requested to sign messages with their crypto wallet (Metamask / Wallet Connect / etc.).
+Vibeproof offers efficient end-to-end encryption, ensuring that only the communication between the event owner and the event applicant is secure. To achieve this, users may be requested to sign messages with their crypto wallet (Metamask/Wallet Connect/etc).
 
 ![crypto](./public/Crypto.png)
 
