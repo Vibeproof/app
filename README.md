@@ -36,4 +36,4 @@ Vibeproof offers efficient end-to-end encryption, ensuring that only the communi
 
 ### Connect 
 
-Any feedback is appreciated. You can reach out to me on Telegram [@p0tekhin](https://t.me/p0tekhin) or Twitter [@potekhin_sergey](https://twitter.com/potekhin_sergey).
+Any feedback is appreciated. You can reach out to me on Telegram [@p0tekhin](https://t.me/p0tekhin) or Twitter [@potekhin_sergey](https://twitter.com/potekhin_sergey). This project was submitted for [Newforum identity hackathon 2023](https://www.newforum.xyz/identity-summer-hackathon-2023).
