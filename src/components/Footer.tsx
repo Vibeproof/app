@@ -37,15 +37,15 @@ export default function Footer() {
     <div className={classes.footer}>
       <Container className={classes.inner}>
         <Group spacing={0} className={classes.links} position="right" noWrap>
-          <ActionIcon size="lg">
+          <ActionIcon size="lg" component='a' target='_blank' href="https://twitter.com/potekhin_sergey">
             <IconBrandTwitter size="1.05rem" stroke={1.5} />
           </ActionIcon>
-          <ActionIcon size="lg">
+          {/* <ActionIcon size="lg">
             <IconBrandTelegram size="1.05rem" stroke={1.5} />
           </ActionIcon>
           <ActionIcon size="lg">
             <IconBrandDiscord size="1.05rem" stroke={1.5} />
-          </ActionIcon>
+          </ActionIcon> */}
         </Group>
       </Container>
     </div>
